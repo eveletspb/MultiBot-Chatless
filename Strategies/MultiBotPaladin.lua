@@ -19,53 +19,53 @@ MultiBot.addPaladin = function(pFrame, pCombat, pNormal)
 
 	sealFrame.addButton("SealHealth", 0, 0, "spell_holy_healingaura", MultiBot.L("tips.paladin.seal.bhealth"))
 	.doLeft = function(pButton)
-		MultiBot.SelectToTarget(pButton.get(), "Seal", pButton.texture, "nc +bhealth,?", pButton.getName())
+		MultiBot.SelectToTarget(pButton.get(), "Seal", pButton.texture, "nc +bsanc,?", pButton.getName())
 		pButton.getButton("Seal").doRight = function(btn)
-			MultiBot.OnOffActionToTarget(btn, "nc +bhealth,?", "nc -bhealth,?", btn.getName())
+			MultiBot.OnOffActionToTarget(btn, "nc +bsanc,?", "nc -bsanc,?", btn.getName())
 		end
 	end
 
 	sealFrame.addButton("SealMana", 0, 26, "spell_holy_sealofwisdom", MultiBot.L("tips.paladin.seal.bmana"))
 	.doLeft = function(pButton)
-		MultiBot.SelectToTarget(pButton.get(), "Seal", pButton.texture, "nc +bmana,?", pButton.getName())
+		MultiBot.SelectToTarget(pButton.get(), "Seal", pButton.texture, "nc +bwisdom,?", pButton.getName())
 		pButton.getButton("Seal").doRight = function(btn)
-			MultiBot.OnOffActionToTarget(btn, "nc +bmana,?", "nc -bmana,?", btn.getName())
+			MultiBot.OnOffActionToTarget(btn, "nc +bwisdom,?", "nc -bwisdom,?", btn.getName())
 		end
 	end
 
 	sealFrame.addButton("SealStats", 0, 52, "spell_magic_magearmor", MultiBot.L("tips.paladin.seal.bstats"))
 	.doLeft = function(pButton)
-		MultiBot.SelectToTarget(pButton.get(), "Seal", pButton.texture, "nc +bstats,?", pButton.getName())
+		MultiBot.SelectToTarget(pButton.get(), "Seal", pButton.texture, "nc +bkings,?", pButton.getName())
 		pButton.getButton("Seal").doRight = function(btn)
-			MultiBot.OnOffActionToTarget(btn, "nc +bstats,?", "nc -bstats,?", btn.getName())
+			MultiBot.OnOffActionToTarget(btn, "nc +bkings,?", "nc -bkings,?", btn.getName())
 		end
 	end
 
 	sealFrame.addButton("SealDps", 0, 78, "inv_hammer_01", MultiBot.L("tips.paladin.seal.bdps"))
 	.doLeft = function(pButton)
-		MultiBot.SelectToTarget(pButton.get(), "Seal", pButton.texture, "nc +bdps,?", pButton.getName())
+		MultiBot.SelectToTarget(pButton.get(), "Seal", pButton.texture, "nc +bmight,?", pButton.getName())
 		pButton.getButton("Seal").doRight = function(btn)
-			MultiBot.OnOffActionToTarget(btn, "nc +bdps,?", "nc -bdps,?", btn.getName())
+			MultiBot.OnOffActionToTarget(btn, "nc +bmight,?", "nc -bmight,?", btn.getName())
 		end
 	end
 
 	-- STRATEGIES:SEAL --
 
-	if(MultiBot.isInside(pNormal, "bhealth")) then
+	if(MultiBot.isInside(pNormal, "bsanc")) then
 		sealButton.setTexture("spell_holy_healingaura").setEnable().doRight = function(pButton)
-			MultiBot.OnOffActionToTarget(pButton, "nc +bhealth,?", "nc -bhealth,?", pButton.getName())
+			MultiBot.OnOffActionToTarget(pButton, "nc +bsanc,?", "nc -bsanc,?", pButton.getName())
 		end
-	elseif(MultiBot.isInside(pNormal, "bmana")) then
+	elseif(MultiBot.isInside(pNormal, "bwisdom")) then
 		sealButton.setTexture("spell_holy_sealofwisdom").setEnable().doRight = function(pButton)
-			MultiBot.OnOffActionToTarget(pButton, "nc +bmana,?", "nc -bmana,?", pButton.getName())
+			MultiBot.OnOffActionToTarget(pButton, "nc +bwisdom,?", "nc -bwisdom,?", pButton.getName())
 		end
-	elseif(MultiBot.isInside(pNormal, "bstats")) then
+	elseif(MultiBot.isInside(pNormal, "bkings")) then
 		sealButton.setTexture("spell_magic_magearmor").setEnable().doRight = function(pButton)
-			MultiBot.OnOffActionToTarget(pButton, "nc +bstats,?", "nc -bstats,?", pButton.getName())
+			MultiBot.OnOffActionToTarget(pButton, "nc +bkings,?", "nc -bkings,?", pButton.getName())
 		end
-	elseif(MultiBot.isInside(pNormal, "bdps")) then
+	elseif(MultiBot.isInside(pNormal, "bmight")) then
         sealButton.setTexture("inv_hammer_01").setEnable().doRight = function(pButton)
-			MultiBot.OnOffActionToTarget(pButton, "nc +bdps,?", "nc -bdps,?", pButton.getName())
+			MultiBot.OnOffActionToTarget(pButton, "nc +bmight,?", "nc -bmight,?", pButton.getName())
 		end
 	end
 
