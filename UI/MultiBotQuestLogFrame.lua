@@ -54,7 +54,7 @@ local function showQuestTooltip(questIndex, questLink, owner)
     local members = getMemberNamesOnQuest(questIndex)
     if #members > 0 then
         GameTooltip:AddLine(" ")
-        GameTooltip:AddLine("Groupe :", 0.8, 0.8, 0.8)
+        GameTooltip:AddLine(MultiBot.L("ui.quest.group"), 0.8, 0.8, 0.8)
         for _, name in ipairs(members) do
             GameTooltip:AddLine("- " .. name)
         end

@@ -79,7 +79,7 @@ local function buildRow(parent, yOffset)
 	nameText:SetPoint("LEFT", rowFrame, "LEFT", 6, 0)
 	nameText:SetWidth(160)
 	nameText:SetJustifyH("LEFT")
-	nameText:SetText("|cffffcc00NAME - CLASS|r")
+	nameText:SetText("|cffffcc00" .. MultiBot.L("ui.reward.name_class") .. "|r")
 
 	local row = {
 		frame = rowFrame,

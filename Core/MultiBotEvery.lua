@@ -39,7 +39,7 @@ local function runBotCombatCommand(button, command)
     return true
   end
 
-  showEveryMessage(MultiBot.L("tips.every.combatbridge", "Bridge unavailable: combat command was not sent."))
+  showEveryMessage(MultiBot.L("tips.every.combatbridge"))
   return false
 end
 
@@ -126,7 +126,7 @@ MultiBot.addEvery = function(pFrame, pCombat, pNormal)
             end
           end
         },
-        { "CharacterInfo", "inv_misc_note_05", MultiBot.L("tips.every.characterinfo", "Infos personnage"), function(b)
+        { "CharacterInfo", "inv_misc_note_05", MultiBot.L("tips.every.characterinfo"), function(b)
             if MultiBot.OpenCharacterInfo then
                 MultiBot.OpenCharacterInfo(b.getName())
             end
@@ -223,14 +223,14 @@ MultiBot.addEvery = function(pFrame, pCombat, pNormal)
 		end
 	end
 
-	pFrame.addButton("Outfits", 364, 0, "inv_chest_chain_15", MultiBot.L("tips.every.outfits", "Outfits")).setDisable()
+	pFrame.addButton("Outfits", 364, 0, "inv_chest_chain_15", MultiBot.L("tips.every.outfits")).setDisable()
 	.doLeft = function(pButton)
 		if(MultiBot.OpenBotOutfits) then
 			MultiBot.OpenBotOutfits(pButton.getName(), pButton)
 		end
 	end
 
-	pFrame.addButton("Trainer", 394, 0, "spell_holy_magicalsentry", MultiBot.L("tips.every.trainer", "Trainer")).setDisable()
+	pFrame.addButton("Trainer", 394, 0, "spell_holy_magicalsentry", MultiBot.L("tips.every.trainer")).setDisable()
 	.doLeft = function(pButton)
 		if(MultiBot.OpenBotTrainer) then
 			MultiBot.OpenBotTrainer(pButton.getName(), pButton)

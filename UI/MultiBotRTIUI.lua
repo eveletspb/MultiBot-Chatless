@@ -64,7 +64,7 @@ local function runRTI(scope, target, command)
         return true
     end
 
-    showRTIMessage(MultiBot.L("rti.bridge.required", "RTI commands require the MultiBot bridge."), 1, 0.2, 0.2)
+    showRTIMessage(MultiBot.L("rti.bridge.required"), 1, 0.2, 0.2)
     return false
 end
 
@@ -465,7 +465,7 @@ function MultiBot.RunStoredBotRTISelections(command)
     end
 
     if sent <= 0 then
-        showRTIMessage(MultiBot.L("info.rti.no_bot_selection", "No bot-specific RTI icon selected."), 1, 0.2, 0.2)
+        showRTIMessage(MultiBot.L("info.rti.no_bot_selection"), 1, 0.2, 0.2)
         updateBotRTIActionButton()
         return false
     end
@@ -554,7 +554,7 @@ function MultiBot.BuildRTIControlUI(controlFrame)
         0,
         150,
         "Spell_ChargePositive",
-        MultiBot.L("tips.units.rti", "RTI / Pull control")
+        MultiBot.L("tips.units.rti")
     )
 
     local rtiFrame = controlFrame.addFrame("RTIControl", 0, 152, 24, 336, 64)

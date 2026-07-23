@@ -566,16 +566,16 @@ local function updateModeLabel()
         return
     end
 
-    local actionLabel = MultiBot.L("info.action", "Action")
+    local actionLabel = MultiBot.L("info.action")
     local actionValues = {
         [""] = "-",
         s = "Sell",
         e = "Equip",
         u = "Use",
         give = "Trade",
-        bank = MultiBot.L("inventory.mode.bank", "Bank"),
-        gb = MultiBot.L("inventory.mode.gbank", "Guild Bank"),
-        b = MultiBot.L("inventory.mode.buy", "Buy"),
+        bank = MultiBot.L("inventory.mode.bank"),
+        gb = MultiBot.L("inventory.mode.gbank"),
+        b = MultiBot.L("inventory.mode.buy"),
         destroy = "Destroy",
     }
 
@@ -587,14 +587,14 @@ end
 
 local function formatMoneyLabel(gold, silver, copper)
     local g = tonumber(gold) or 0
-    local moneyLabel = MultiBot.L("info.inventory.money_label", "Money")
+    local moneyLabel = MultiBot.L("info.inventory.money_label")
     return string.format("|cffffff00%s:|r %d|cffffd700g|r", moneyLabel, g)
 end
 
 local function formatBagSlotsLabel(used, total)
     local usedSlots = tonumber(used)
     local totalSlots = tonumber(total)
-    local bagSlotsLabel = MultiBot.L("info.inventory.bag_slots_label", "Bag Slots")
+    local bagSlotsLabel = MultiBot.L("info.inventory.bag_slots_label")
     if not usedSlots or not totalSlots then
         return string.format("|cffffff00%s:|r -/-", bagSlotsLabel)
     end
@@ -615,7 +615,7 @@ local function parseInventorySummaryLine(rawLine)
     local function resolveBagPair()
         local markerCandidates = {
             "Bag",
-            MultiBot.L("info.shorts.bag", "Bag"),
+            MultiBot.L("info.shorts.bag"),
             "背包",
         }
         local seen = {}
@@ -695,7 +695,7 @@ local function getInventoryWindowTitle(botName)
         return defaultTitle
     end
 
-    return MultiBot.doReplace(MultiBot.L("info.inventory", defaultTitle), "NAME", botName)
+    return MultiBot.doReplace(MultiBot.L("info.inventory"), "NAME", botName)
 end
 
 local function disableActionModes(exceptKey)
@@ -1056,7 +1056,7 @@ local function runInventoryInstantAction(botName, command, options)
         end
 
         if protectedFound then
-            SendChatMessage(MultiBot.L("info.questitemsellalert", "I cannot sell quest items."), "SAY")
+            SendChatMessage(MultiBot.L("info.questitemsellalert"), "SAY")
         end
 
         if sellCount < 1 and not protectedFound then
@@ -1122,7 +1122,7 @@ local function createInventoryContent(window)
     if modeLabel.SetWordWrap then
         modeLabel:SetWordWrap(true)
     end
-    modeLabel:SetText(MultiBot.L("info.action", "Action") .. ":")
+    modeLabel:SetText(MultiBot.L("info.action") .. ":")
 
     local modeValueLabel = leftPanel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     modeValueLabel:SetPoint("TOPLEFT", modeLabel, "BOTTOMLEFT", 0, -2)
@@ -1162,17 +1162,17 @@ local function createInventoryContent(window)
         { key = "Equip", texture = "inv_helmet_22", tip = MultiBot.L("tips.inventory.equip") },
         { key = "Use", texture = "inv_gauntlets_25", tip = MultiBot.L("tips.inventory.use") },
         { key = "Trade", texture = "achievement_reputation_01", tip = MultiBot.L("tips.inventory.trade") },
-        { key = "Bank", texture = "inv_misc_bag_10", tip = MultiBot.L("tips.inventory.bank.deposit", "Deposit to bank") },
-        { key = "GuildBank", texture = "inv_misc_bag_15", tip = MultiBot.L("tips.inventory.gbank.deposit", "Deposit to guild bank") },
-        { key = "Buy", texture = "inv_misc_coin_05", tip = MultiBot.L("tips.inventory.buy", "Buy this item from a nearby vendor") },
+        { key = "Bank", texture = "inv_misc_bag_10", tip = MultiBot.L("tips.inventory.bank.deposit") },
+        { key = "GuildBank", texture = "inv_misc_bag_15", tip = MultiBot.L("tips.inventory.gbank.deposit") },
+        { key = "Buy", texture = "inv_misc_coin_05", tip = MultiBot.L("tips.inventory.buy") },
         { key = "Destroy", texture = "inv_hammer_15", tip = MultiBot.L("tips.inventory.drop") },
     }
     local instantButtonDefs = {
         { key = "SellGrey", texture = "inv_misc_coin_03", tip = MultiBot.L("tips.inventory.sellgrey") },
         { key = "SellVendor", texture = "inv_misc_coin_04", tip = MultiBot.L("tips.inventory.sellvendor") },
         { key = "Open", texture = "inv_misc_gift_05", tip = MultiBot.L("tips.inventory.open") },
-        { key = "BankOpen", texture = "inv_misc_bag_10", tip = MultiBot.L("tips.inventory.bank.open", "Open bot bank") },
-        { key = "GuildBankOpen", texture = "inv_misc_bag_15", tip = MultiBot.L("tips.inventory.gbank.open", "Open bot guild bank") },
+        { key = "BankOpen", texture = "inv_misc_bag_10", tip = MultiBot.L("tips.inventory.bank.open") },
+        { key = "GuildBankOpen", texture = "inv_misc_bag_15", tip = MultiBot.L("tips.inventory.gbank.open") },
     }
 
     for index, definition in ipairs(modeButtonDefs) do

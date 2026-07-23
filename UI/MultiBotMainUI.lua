@@ -587,7 +587,7 @@ local function updatePullControlWaitLabel(frame)
         return
     end
 
-    frame.waitLabel:SetText("Wait: " .. tostring(frame._mbWaitTime or 0) .. "s")
+    frame.waitLabel:SetText(string.format(MultiBot.L("ui.pullcontrol.wait"), frame._mbWaitTime or 0))
 end
 
 local function setPullControlStates(frame, wait, focus, dpsAssist, dpsAoe)
@@ -631,11 +631,11 @@ local function createPullControlFrame(mainFrame, pullButton)
     frame.title = frame:CreateFontString(nil, "ARTWORK")
     frame.title:SetFont("Fonts\\ARIALN.ttf", 12, "OUTLINE")
     frame.title:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -8)
-    frame.title:SetText("Pull Control")
+    frame.title:SetText(MultiBot.L("ui.pullcontrol.title"))
 
-    createPullControlScopeButton(frame, "ScopeBot", 10, "Selected", "tips.main.pullscopebot", "BOT")
-    createPullControlScopeButton(frame, "ScopeGroup", 82, "Party", "tips.main.pullscopegroup", "GROUP")
-    createPullControlScopeButton(frame, "ScopeAll", 154, "Raid", "tips.main.pullscopeall", "ALL")
+    createPullControlScopeButton(frame, "ScopeBot", 10, MultiBot.L("ui.pullcontrol.scope.selected"), "tips.main.pullscopebot", "BOT")
+    createPullControlScopeButton(frame, "ScopeGroup", 82, MultiBot.L("ui.pullcontrol.scope.party"), "tips.main.pullscopegroup", "GROUP")
+    createPullControlScopeButton(frame, "ScopeAll", 154, MultiBot.L("ui.pullcontrol.scope.raid"), "tips.main.pullscopeall", "ALL")
     frame.scopeButtons.ScopeBot:SetButtonState("PUSHED", true)
 
     frame.waitLabel = frame:CreateFontString(nil, "ARTWORK")
@@ -779,7 +779,7 @@ local function createPullControlFrame(mainFrame, pullButton)
     frame.actionsText:SetPoint("TOPLEFT", frame, "TOPLEFT", 158, -118)
     frame.actionsText:SetWidth(64)
     frame.actionsText:SetJustifyH("CENTER")
-    frame.actionsText:SetText("RTI\nActions")
+    frame.actionsText:SetText(MultiBot.L("ui.pullcontrol.rti_actions"))
 
     setPullControlStates(frame, false, false, false, false)
 

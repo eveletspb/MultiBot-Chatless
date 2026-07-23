@@ -84,7 +84,7 @@ function Shared.ApplyEditBoxStyle(widget)
 end
 
 function Shared.GetQuestDropButtonText()
-    return MultiBot.L("tips.quests.drop", ABANDON_QUEST or "Abandon")
+    return MultiBot.L("tips.quests.drop")
 end
 
 function Shared.SendDropQuest(botName, entry)
