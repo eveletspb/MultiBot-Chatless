@@ -32,11 +32,13 @@ Initial inventory of user-facing hardcoded strings in `Core/`, `UI/`, and `Featu
   - Whisper command construction is command protocol text, not user-facing labels.
   - No direct panel label migration performed in this kickoff.
 
-## Inline fallback scan snapshot (current)
+## Inline fallback scan snapshot
 
-- Current scan result for `Core/UI/Features`:
-  - `rg -n 'MultiBot\.L\(\s*"[^"]+"\s*,' Core UI Features`
-  - No remaining `MultiBot.L(key, fallback)` call sites in these directories.
+- Current scan command:
+  - `rg -n 'MultiBot\.L\(\s*"[^"]+"\s*,' Core UI Features Strategies`
+- The only remaining call site is `UI/MultiBotSpecUI.lua`, where the fallback is a
+  dynamically generated specialization title rather than a duplicated English
+  literal.
 
 ## Legacy tips-read scan snapshot (current)
 
@@ -88,3 +90,38 @@ Initial inventory of user-facing hardcoded strings in `Core/`, `UI/`, and `Featu
  2. Expand key coverage ...
  3. Keep using client-localized Blizzard globals ...
  4. Keep technical/protocol identifiers unchanged unless the protocol itself is migrated.
+
+## Russian locale completion
+
+The `ruRU` locale is maintained at full key parity with `enUS`. The locale
+checker validates:
+
+- missing and unexpected keys;
+- duplicate keys;
+- ordered `string.format` arguments such as `%s` and `%d`.
+
+Run the checker from the repository root:
+
+```sh
+lua tools/check-locales.lua
+```
+
+The current `enUS` and `ruRU` dictionaries contain 1037 matching keys.
+
+The Russian quality pass also covers previously untranslated Spanish, French,
+and English UI text. Technical identifiers and protocol commands remain
+unchanged where translating them would make the interface less precise, for
+example `RTI`, `DPS`, `Playerbot`, and `co +focus`.
+
+Before committing localization changes:
+
+```sh
+lua tools/check-locales.lua
+git diff --name-only -- '*.lua' | xargs -n 1 luac -p
+git diff --check
+```
+
+After static validation, smoke-test the addon on a `ruRU` client. At minimum,
+check the main bot menu, pull controls, inventory, quest tooltips, inspect
+tooltip, reward selection, PvP panel, character information, outfits, and
+trainer actions.
