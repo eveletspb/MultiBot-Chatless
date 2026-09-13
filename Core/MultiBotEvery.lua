@@ -387,7 +387,7 @@ MultiBot.addEvery = function(pFrame, pCombat, pNormal)
 	if not isSelfBot then
 		pFrame.addButton("Summon", 94, 0, "ability_hunter_beastcall", MultiBot.L("tips.every.summon"))
 		.doLeft = function(pButton)
-			MultiBot.ActionToTarget("summon", pButton.getName())
+			MultiBot.SummonBots("BOT", pButton.getName())
 		end
 
 		pFrame.addButton("Uninvite", 124, 0, "inv_misc_grouplooking", MultiBot.L("tips.every.uninvite")).doShow()

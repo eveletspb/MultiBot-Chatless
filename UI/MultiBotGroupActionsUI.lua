@@ -73,7 +73,7 @@ local function addRollBackdrop(window)
     window.rollBackdrop = backdrop
 end
 
-local function createGroupCommand(buttonHost, definition)
+local function createGroupCommand(buttonHost, definition, onClick)
     local button = buttonHost.addButton(
         definition.name,
         definition.x,
@@ -82,7 +82,7 @@ local function createGroupCommand(buttonHost, definition)
         MultiBot.L(definition.tip)
     )
 
-    button.doLeft = function()
+    button.doLeft = onClick or function()
         MultiBot.ActionToGroup(definition.command)
     end
 
@@ -296,7 +296,9 @@ function MultiBot.InitializeGroupActionsUI(tRight)
         GroupActionsUI:ShowRollWindow()
     end
 
-    local summonButton = createGroupCommand(tRight, SUMMON_BUTTON)
+    local summonButton = createGroupCommand(tRight, SUMMON_BUTTON, function()
+        MultiBot.SummonBots("GROUP", "")
+    end)
 
     if MultiBot.BindShiftRightSwapButtons then
         MultiBot.BindShiftRightSwapButtons(tRight, "RightRoot", {

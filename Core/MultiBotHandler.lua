@@ -1964,7 +1964,7 @@ function MultiBot.HandleMultiBotEvent(event, ...)
 			end
 
 			if(arg1 == "Meet me at the graveyard") then
-				SendChatMessage("summon", "WHISPER", nil, arg2)
+				MultiBot.SummonBots("BOT", arg2)
 				return
 			end
 		end
@@ -1995,7 +1995,7 @@ function MultiBot.HandleMultiBotEvent(event, ...)
 		if(MultiBot.auto.release == true) then
 			-- Graveyard ready to talk Bot in the chinese Version --
 			if(tButton ~= nil and tButton.waitFor == "你好" and arg1 == "你好") then
-				SendChatMessage("summon", "WHISPER", nil, arg2)
+				MultiBot.SummonBots("BOT", arg2)
 				tButton.waitFor = ""
 				return
 			end

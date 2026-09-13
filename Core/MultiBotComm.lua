@@ -43,6 +43,7 @@ local BOT_TARGET_RESOLVE_CAPABILITY = "BOT_TARGET_RESOLVE_V1"
 local CAPABILITY_STATE_FIELDS = {
   [STATE_FRAMING_CAPABILITY] = "stateFramingCapable",
   [STRATEGY_MUTATION_CAPABILITY] = "strategyMutationCapable",
+  ["SUMMON_V1"] = "summonCapable",
   ["SELF_STRATEGY_V1"] = "selfStrategyCapable",
   [SELF_ACTION_CAPABILITY] = "selfActionCapable",
   [OUTFIT_CAPABILITY] = "outfitCapable",
@@ -339,6 +340,7 @@ local function ensureBridgeState()
   state.pendingStateRefreshAll = state.pendingStateRefreshAll or false
   state.pendingStateRefreshByBot = state.pendingStateRefreshByBot or {}
   state.strategyMutationCapable = state.strategyMutationCapable or false
+  state.summonCapable = state.summonCapable or false
   state.selfStrategyCapable = state.selfStrategyCapable or false
   state.selfActionCapable = state.selfActionCapable or false
   state.outfitCapable = state.outfitCapable or false
@@ -393,6 +395,8 @@ local function ensureBridgeState()
   state.talentSpecApplyCommands = state.talentSpecApplyCommands or {}
   state.strategyMutationSeq = state.strategyMutationSeq or 0
   state.strategyMutationCommands = state.strategyMutationCommands or {}
+  state.summonSeq = state.summonSeq or 0
+  state.summonCommands = state.summonCommands or {}
   state.selfStrategySeq = state.selfStrategySeq or 0
   state.selfStrategyCommands = state.selfStrategyCommands or {}
   state.selfActionSeq = state.selfActionSeq or 0
@@ -1801,6 +1805,101 @@ function Comm.RunCombatCommand(scope, target, command)
   local token = tostring(math.floor(safeNow() * 1000)) .. "-" .. tostring(state.combatSeq)
 
   return Comm.Send("RUN", "COMBAT~" .. scope .. "~" .. urlEncodeField(target) .. "~" .. token .. "~" .. urlEncodeField(command))
+end
+
+function Comm.FinishSummonCommand(token, result)
+  local state = ensureBridgeState()
+  local pending = state.summonCommands[token]
+  if type(pending) ~= "table" then
+    return false
+  end
+
+  state.summonCommands[token] = nil
+  result = type(result) == "table" and result or {}
+  result.token = token
+  result.scope = result.scope or pending.scope
+  result.target = result.target or pending.target
+
+  if type(pending.callback) == "function" then
+    pending.callback(result)
+  end
+
+  if MultiBot.OnSummonCommandApplied then
+    MultiBot.OnSummonCommandApplied(result)
+  end
+
+  return true
+end
+
+function Comm.RunSummonCommand(scope, target, callback)
+  local state = ensureBridgeState()
+
+  if not state.connected then
+    state.lastError = "SUMMON_NOT_CONNECTED"
+    return false
+  end
+  if not state.summonCapable then
+    state.lastError = "SUMMON_CAPABILITY_UNAVAILABLE"
+    return false
+  end
+
+  scope = string.upper(trim(scope or "BOT"))
+  target = trim(target or "")
+  if (scope ~= "BOT" and scope ~= "GROUP")
+      or (scope == "BOT" and target == "")
+      or (scope ~= "BOT" and target ~= "") then
+    state.lastError = "SUMMON_INVALID_TARGET"
+    return false
+  end
+  if countTableEntries(state.summonCommands) >= 64 then
+    state.lastError = "SUMMON_TOO_MANY_REQUESTS"
+    return false
+  end
+
+  state.summonSeq = (tonumber(state.summonSeq) or 0) + 1
+  local token = tostring(math.floor(safeNow() * 1000)) .. "-summon-" .. tostring(state.summonSeq)
+  state.summonCommands[token] = {
+    scope = scope,
+    target = target,
+    callback = type(callback) == "function" and callback or nil,
+    startedAt = safeNow(),
+  }
+
+  if not Comm.Send("RUN", "SUMMON~" .. scope .. "~" .. urlEncodeField(target) .. "~" .. token) then
+    state.summonCommands[token] = nil
+    state.lastError = "SUMMON_SEND_FAILED"
+    return false
+  end
+
+  if MultiBot and type(MultiBot.TimerAfter) == "function" then
+    MultiBot.TimerAfter(5.0, function()
+      local bridge = ensureBridgeState()
+      if not bridge.summonCommands[token] then
+        return
+      end
+
+      bridge.lastError = "SUMMON_TIMEOUT~" .. token
+      Comm.FinishSummonCommand(token, {
+        status = "timeout",
+        matched = 0,
+        succeeded = 0,
+        failed = 0,
+        reason = "TIMEOUT",
+      })
+    end)
+  end
+
+  return token
+end
+
+function MultiBot.SummonBots(scope, target, callback)
+  local token = Comm.RunSummonCommand(scope, target, callback)
+  if token then
+    return token
+  end
+
+  systemMessage(L("formation.query.unavailable", "Bridge unavailable."))
+  return false
 end
 
 local function validateStrategyMutationChanges(changes)
@@ -5211,6 +5310,7 @@ function Comm.MarkDisconnected(reason)
   state.formationCommands = {}
   state.formationQueryActive = nil
   state.strategyMutationCapable = false
+  state.summonCapable = false
 state.selfStrategyCapable = false
 state.selfActionCapable = false
   state.outfitCapable = false
@@ -5287,6 +5387,21 @@ state.selfActionCapable = false
     })
   end
   state.strategyMutationCommands = {}
+
+  local pendingSummonTokens = {}
+  for token in pairs(state.summonCommands or {}) do
+    pendingSummonTokens[#pendingSummonTokens + 1] = token
+  end
+  for _, token in ipairs(pendingSummonTokens) do
+    Comm.FinishSummonCommand(token, {
+      status = "error",
+      matched = 0,
+      succeeded = 0,
+      failed = 0,
+      reason = "DISCONNECTED",
+    })
+  end
+  state.summonCommands = {}
 
   state.stateRequests = {}
   state.stateActive = {}
@@ -7781,6 +7896,89 @@ local STRUCTURED_OPCODE_HANDLERS = {
   CRAFT_RECIPE_TARGET_RESULT = handleProfessionRecipeTargetResponse,
 }
 
+function Comm.HandleSummonAddonMessage(opcode, payload, state)
+  if opcode ~= "SUMMON_ACK" then
+    return false
+  end
+
+  state = type(state) == "table" and state or ensureBridgeState()
+  local fields = splitFields(payload or "")
+  if #fields ~= 7 then
+    state.lastError = "SUMMON_ACK_BAD_FIELD_COUNT"
+    return true
+  end
+
+  local scope = string.upper(trim(fields[1]))
+  local target = urlDecodeFieldStrict(fields[2], 64, true)
+  local token = trim(fields[3])
+  local matched = parseBoundedInteger(fields[4], 0, 128)
+  local succeeded = parseBoundedInteger(fields[5], 0, 128)
+  local failed = parseBoundedInteger(fields[6], 0, 128)
+  local reason = urlDecodeFieldStrict(fields[7], 64, false)
+  local pending = state.summonCommands[token]
+
+  if (scope ~= "BOT" and scope ~= "GROUP")
+      or target == nil
+      or not isValidStateToken(token)
+      or matched == nil
+      or succeeded == nil
+      or failed == nil
+      or reason == nil
+      or succeeded + failed > matched
+      or type(pending) ~= "table"
+      or pending.scope ~= scope
+      or string.lower(pending.target or "") ~= string.lower(target) then
+    state.lastError = "SUMMON_ACK_INVALID"
+    return true
+  end
+
+  state.connected = true
+  state.lastError = nil
+  debugPrint("ADDON:RX", "SUMMON_ACK", payload or "")
+
+  local status = "failed"
+  if reason == "RATE_LIMIT" then
+    status = "error"
+  elseif reason == "BOT_LIMIT" and succeeded > 0 then
+    status = "partial"
+  elseif matched == 0 then
+    status = "no_match"
+  elseif succeeded == matched and failed == 0 then
+    status = "ok"
+  elseif succeeded > 0 then
+    status = "partial"
+  end
+
+  Comm.FinishSummonCommand(token, {
+    status = status,
+    scope = scope,
+    target = target,
+    matched = matched,
+    succeeded = succeeded,
+    failed = failed,
+    reason = reason,
+  })
+  return true
+end
+
+function Comm.HandleSummonProtocolError(requestType, token, reason, state)
+  if requestType ~= "SUMMON" then
+    return false
+  end
+
+  state = type(state) == "table" and state or ensureBridgeState()
+  if state.summonCommands[token] then
+    Comm.FinishSummonCommand(token, {
+      status = "error",
+      matched = 0,
+      succeeded = 0,
+      failed = 0,
+      reason = reason,
+    })
+  end
+  return true
+end
+
 function Comm.HandleAddonMessage(prefix, message, distribution, sender)
   if prefix ~= Comm.prefix then
     return false
@@ -7844,6 +8042,10 @@ function Comm.HandleAddonMessage(prefix, message, distribution, sender)
   end
 
   if handleCapabilityMessage(opcode, payload, state) then
+    return true
+  end
+
+  if Comm.HandleSummonAddonMessage(opcode, payload, state) then
     return true
   end
 
@@ -9918,6 +10120,8 @@ function Comm.HandleAddonMessage(prefix, message, distribution, sender)
           return true
         elseif Comm.HandleAltBotLifecycleProtocolError(requestType, token, reason, state) then
           return true
+        elseif Comm.HandleSummonProtocolError(requestType, token, reason, state) then
+          return true
         elseif requestType == "LOOT_RULE_ITEM" and state.lootRuleItemCommands[token] then
           local pending = state.lootRuleItemCommands[token]
           state.lootRuleItemCommands[token] = nil
@@ -9990,6 +10194,8 @@ function Comm.OnPlayerEnteringWorld()
   state.pendingStateRefreshAll = false
   state.pendingStateRefreshByBot = {}
   state.strategyMutationCapable = false
+  state.summonCapable = false
+  state.summonCommands = {}
 state.selfStrategyCapable = false
 state.selfActionCapable = false
   state.outfitCapable = false

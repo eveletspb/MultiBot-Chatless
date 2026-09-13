@@ -669,9 +669,11 @@ local function createPullControlFrame(mainFrame, pullButton)
         updatePullControlWaitLabel(frame)
 
         if frame.buttons["PullWait"] and frame.buttons["PullWait"].state then
-            runPullControlCombatCommands(frame, {
+            if runPullControlCombatCommands(frame, {
                 "wait for attack time " .. tostring(frame._mbWaitTime or 0),
-            })
+            }) and frame._mbWaitTime == 0 then
+                setPullControlButtonState(frame.buttons["PullWait"], false)
+            end
         end
     end)
 
@@ -688,7 +690,7 @@ local function createPullControlFrame(mainFrame, pullButton)
         if runPullControlCombatCommands(frame, {
             "wait for attack time " .. tostring(frame._mbWaitTime or 0),
         }) then
-            setPullControlButtonState(button, true)
+            setPullControlButtonState(button, (frame._mbWaitTime or 0) > 0)
         end
     end)
 
