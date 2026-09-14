@@ -115,9 +115,7 @@ function MultiBot.InitializeLeftCoreUI(tLeft)
     end
 
     tLeft.addButton("Tanker", -238, 0, "ability_warrior_shieldbash", MultiBot.L("tips.tanker.master")).doLeft = function()
-        if MultiBot.isTarget() then
-            MultiBot.ActionToGroup("@tank do attack my target")
-        end
+        MultiBot.ActionToGroup("@tank do attack my target")
     end
 
     createModeUI(tLeft)

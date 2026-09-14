@@ -630,6 +630,7 @@ local MB_GROUP_ORDER_COMMANDS = {
 	["@healer flee"] = true,
 	["@dps flee"] = true,
 	["@tank flee"] = true,
+	["@tank do attack my target"] = true,
 }
 
 local function _mbNormalizeGroupOrder(action)
@@ -1033,7 +1034,11 @@ end
 MultiBot.SelectToGroupButtonWithTarget = function(pParent, pIndex, pTexture, pAction)
 	local tFrame = pParent.frames[pIndex]
 	local tButton = pParent.buttons[pIndex]
-	tButton.doLeft = function(pButton) if(MultiBot.isTarget()) then MultiBot.ActionToGroup(pAction) end end
+	tButton.doLeft = function(pButton)
+		if(MultiBot.isTarget() or _mbNormalizeGroupOrder(pAction)) then
+			MultiBot.ActionToGroup(pAction)
+		end
+	end
 	tButton.setTexture(pTexture)
 	tFrame:Hide()
 	if(MultiBot.RequestClickBlockerUpdate) then MultiBot.RequestClickBlockerUpdate(tFrame) end

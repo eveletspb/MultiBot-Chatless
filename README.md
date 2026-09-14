@@ -77,7 +77,7 @@ The project is currently **bridge-first / mostly chatless** rather than fully ch
 | **Enchanting** | Dedicated Enchanting Trade Service using the native WoW Trade workflow. |
 | **Quests** | Bridge-backed quest list and structured bot quest abandon. Native quest sharing remains available. |
 | **Loot** | Structured loot profiles and exact persistent always-loot item add/remove. |
-| **Group tools** | Formation, Roll, Summon, Stay, Follow, Flee, RTI, Pull Control and Disperse use structured bridge commands with aggregate status. |
+| **Group tools** | Formation, Roll, Summon, Stay, Follow, Flee, tank attack, RTI, Pull Control and Disperse use structured bridge commands with aggregate status. |
 | **Material mail** | A confirmed action in “commands for all bots” sends supported resources from eligible online party/raid bots to the current character and prints one aggregate report. |
 | **Character information** | Bot skills, reputations, currencies/emblems, spellbook, stats and PvP stats. |
 | **Outfits** | Outfit listing and actions through the Bridge. |

@@ -26,7 +26,7 @@ local function addAttackButton(frame, definition, index)
     )
 
     button.doLeft = function()
-        if MultiBot.isTarget() then
+        if definition.cmd == "@tank do attack my target" or MultiBot.isTarget() then
             MultiBot.ActionToGroup(definition.cmd)
         end
     end
