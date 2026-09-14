@@ -2542,6 +2542,188 @@ local function createPvpStatsControls(controlFrame)
     end
 end
 
+local MATERIAL_MAIL_REASON_ORDER = {
+    "NO_MAILBOX",
+    "NOT_ENOUGH_MONEY",
+    "BOT_IN_COMBAT",
+    "BOT_DEAD",
+    "BOT_BUSY",
+    "BOT_UNAVAILABLE",
+    "RANDOM_BOT",
+    "ADDCLASS_BOT",
+    "CROSS_FACTION_MAIL",
+    "FORBIDDEN",
+    "NO_MATERIALS",
+    "LIMIT_REACHED",
+}
+
+local function showMaterialMailUiError(message)
+    if UIErrorsFrame and UIErrorsFrame.AddMessage then
+        UIErrorsFrame:AddMessage(message, 1, 0.2, 0.2, 1)
+    elseif DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.AddMessage then
+        DEFAULT_CHAT_FRAME:AddMessage(message)
+    end
+end
+
+local function addMaterialMailChatLine(message)
+    if DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.AddMessage then
+        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99MultiBot|r: " .. tostring(message or ""))
+    end
+end
+
+local function materialMailReasonLabel(reason)
+    local key = "material.mail.reason." .. tostring(reason or "UNKNOWN")
+    return MultiBot.L(key, tostring(reason or "UNKNOWN"))
+end
+
+local function addMaterialMailReasonLines(reason, names)
+    local prefix = materialMailReasonLabel(reason) .. ": "
+    local current = prefix
+    for _, name in ipairs(names) do
+        local separator = current == prefix and "" or ", "
+        local candidate = current .. separator .. name
+        if #candidate > 210 and current ~= prefix then
+            addMaterialMailChatLine(current)
+            current = prefix .. name
+        else
+            current = candidate
+        end
+    end
+    if current ~= prefix then
+        addMaterialMailChatLine(current)
+    end
+end
+
+local function showMaterialMailResult(result)
+    result = type(result) == "table" and result or {}
+    if result.status == "ERR" then
+        addMaterialMailChatLine(string.format(
+            MultiBot.L("material.mail.result.error", "Material mail was not sent: %s."),
+            materialMailReasonLabel(result.reason)
+        ))
+    else
+        addMaterialMailChatLine(string.format(
+            MultiBot.L("material.mail.result.summary", "Sent: %d bots, %d stacks, %d items, %d mails."),
+            tonumber(result.sentBots) or 0,
+            tonumber(result.sentStacks) or 0,
+            tonumber(result.sentItems) or 0,
+            tonumber(result.sentMails) or 0
+        ))
+        if (tonumber(result.remainingStacks) or 0) > 0 then
+            addMaterialMailChatLine(string.format(
+                MultiBot.L("material.mail.result.remaining", "Left with bots due to batch limits or insufficient postage: %d stacks."),
+                tonumber(result.remainingStacks) or 0
+            ))
+        end
+    end
+
+    local grouped = {}
+    local extraReasons = {}
+    for _, skipped in ipairs(result.skipped or {}) do
+        local reason = tostring(skipped.reason or "UNKNOWN")
+        if not grouped[reason] then
+            grouped[reason] = {}
+            extraReasons[#extraReasons + 1] = reason
+        end
+        grouped[reason][#grouped[reason] + 1] = tostring(skipped.name or "Unknown")
+    end
+
+    local emitted = {}
+    for _, reason in ipairs(MATERIAL_MAIL_REASON_ORDER) do
+        if grouped[reason] then
+            addMaterialMailReasonLines(reason, grouped[reason])
+            emitted[reason] = true
+        end
+    end
+    table.sort(extraReasons)
+    for _, reason in ipairs(extraReasons) do
+        if not emitted[reason] then
+            addMaterialMailReasonLines(reason, grouped[reason])
+        end
+    end
+end
+
+function MultiBot.RefreshGroupMaterialMailButton()
+    local button = MultiBot.groupMaterialMailButton
+    if not button then
+        return false
+    end
+
+    local bridge = MultiBot.bridge or {}
+    local inGroup = (GetNumRaidMembers and GetNumRaidMembers() > 0) or
+        (GetNumPartyMembers and GetNumPartyMembers() > 0)
+    local pending = type(bridge.groupMaterialMailCommands) == "table" and
+        next(bridge.groupMaterialMailCommands) ~= nil
+    local ready = bridge.connected == true and bridge.groupMaterialMailCapable == true and inGroup and not pending
+
+    if ready then
+        button.setEnable(false)
+    else
+        button.setDisable(false)
+    end
+    return ready
+end
+
+local function sendGroupMaterialMail(button)
+    if not MultiBot.RefreshGroupMaterialMailButton() then
+        local bridge = MultiBot.bridge or {}
+        local reason = "material.mail.unavailable"
+        if bridge.connected == true and bridge.groupMaterialMailCapable == true then
+            if not ((GetNumRaidMembers and GetNumRaidMembers() > 0) or
+                (GetNumPartyMembers and GetNumPartyMembers() > 0)) then
+                reason = "material.mail.no_group"
+            elseif type(bridge.groupMaterialMailCommands) == "table" and
+                next(bridge.groupMaterialMailCommands) ~= nil then
+                reason = "material.mail.busy"
+            end
+        end
+        showMaterialMailUiError(MultiBot.L(reason))
+        return
+    end
+
+    local comm = MultiBot.Comm
+    if not comm or type(comm.RunGroupMaterialMail) ~= "function" then
+        showMaterialMailUiError(MultiBot.L("material.mail.unavailable"))
+        return
+    end
+
+    button.setDisable(false)
+    local token = comm.RunGroupMaterialMail(function(result)
+        MultiBot.RefreshGroupMaterialMailButton()
+        showMaterialMailResult(result)
+    end)
+    if not token then
+        MultiBot.RefreshGroupMaterialMailButton()
+        showMaterialMailUiError(MultiBot.L("material.mail.send_failed"))
+    end
+end
+
+local function showGroupMaterialMailConfirmation(button)
+    if not StaticPopupDialogs or not StaticPopup_Show then
+        showMaterialMailUiError(MultiBot.L("material.mail.confirm_unavailable"))
+        return
+    end
+
+    if not StaticPopupDialogs["MULTIBOT_GROUP_MATERIAL_MAIL_CONFIRM"] then
+        StaticPopupDialogs["MULTIBOT_GROUP_MATERIAL_MAIL_CONFIRM"] = {
+            text = MultiBot.L("material.mail.confirm"),
+            button1 = ACCEPT,
+            button2 = CANCEL,
+            OnAccept = function(_, data)
+                if data and data.button then
+                    sendGroupMaterialMail(data.button)
+                end
+            end,
+            timeout = 0,
+            whileDead = 1,
+            hideOnEscape = 1,
+            preferredIndex = 3,
+        }
+    end
+
+    StaticPopup_Show("MULTIBOT_GROUP_MATERIAL_MAIL_CONFIRM", UnitName("player") or "", nil, { button = button })
+end
+
 local function createAllBotsCommands(controlFrame)
     local mainButton = controlFrame.addButton("AllBotsCommands", 0, 90, "Temp", MultiBot.L("tips.allbots.commandsallbots"))
     mainButton.doLeft = function()
@@ -2553,12 +2735,28 @@ local function createAllBotsCommands(controlFrame)
         if menu:IsShown() then
             menu:Hide()
         else
+            MultiBot.RefreshGroupMaterialMailButton()
             menu:Show()
         end
     end
 
-    local menuFrame = controlFrame.addFrame("AllBotsCommandsMenu", -30, 92, 32, 64)
+    local menuFrame = controlFrame.addFrame("AllBotsCommandsMenu", -30, 92, 32, 32, 100)
     menuFrame:Hide()
+
+    MultiBot.groupMaterialMailButton = menuFrame.addButton(
+        "MaterialMailAllBots",
+        0,
+        68,
+        "Mail_GMIcon",
+        string.format(MultiBot.L("tips.allbots.materialmail"), UnitName("player") or "")
+    )
+    MultiBot.groupMaterialMailButton.doLeft = function(button)
+        if MultiBot.RefreshGroupMaterialMailButton() then
+            showGroupMaterialMailConfirmation(button)
+        else
+            sendGroupMaterialMail(button)
+        end
+    end
 
     menuFrame.addButton("MaintenanceAllBots", 0, 34, "achievement_halloween_smiley_01", MultiBot.L("tips.allbots.maintenanceallbots"))
         .doLeft = function()

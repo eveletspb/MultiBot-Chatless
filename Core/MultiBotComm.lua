@@ -44,6 +44,7 @@ local CAPABILITY_STATE_FIELDS = {
   [STATE_FRAMING_CAPABILITY] = "stateFramingCapable",
   [STRATEGY_MUTATION_CAPABILITY] = "strategyMutationCapable",
   ["SUMMON_V1"] = "summonCapable",
+  ["GROUP_MATERIAL_MAIL_V1"] = "groupMaterialMailCapable",
   ["SELF_STRATEGY_V1"] = "selfStrategyCapable",
   [SELF_ACTION_CAPABILITY] = "selfActionCapable",
   [OUTFIT_CAPABILITY] = "outfitCapable",
@@ -341,6 +342,7 @@ local function ensureBridgeState()
   state.pendingStateRefreshByBot = state.pendingStateRefreshByBot or {}
   state.strategyMutationCapable = state.strategyMutationCapable or false
   state.summonCapable = state.summonCapable or false
+  state.groupMaterialMailCapable = state.groupMaterialMailCapable or false
   state.selfStrategyCapable = state.selfStrategyCapable or false
   state.selfActionCapable = state.selfActionCapable or false
   state.outfitCapable = state.outfitCapable or false
@@ -397,6 +399,8 @@ local function ensureBridgeState()
   state.strategyMutationCommands = state.strategyMutationCommands or {}
   state.summonSeq = state.summonSeq or 0
   state.summonCommands = state.summonCommands or {}
+  state.groupMaterialMailSeq = state.groupMaterialMailSeq or 0
+  state.groupMaterialMailCommands = state.groupMaterialMailCommands or {}
   state.selfStrategySeq = state.selfStrategySeq or 0
   state.selfStrategyCommands = state.selfStrategyCommands or {}
   state.selfActionSeq = state.selfActionSeq or 0
@@ -1900,6 +1904,112 @@ function MultiBot.SummonBots(scope, target, callback)
 
   systemMessage(L("formation.query.unavailable", "Bridge unavailable."))
   return false
+end
+
+function Comm.IsGroupMaterialMailCapable()
+  local state = ensureBridgeState()
+  return state.connected == true and state.groupMaterialMailCapable == true
+end
+
+function Comm.FinishGroupMaterialMailCommand(token, result)
+  local state = ensureBridgeState()
+  local pending = state.groupMaterialMailCommands[token]
+  if type(pending) ~= "table" then
+    return false
+  end
+
+  state.groupMaterialMailCommands[token] = nil
+  result = type(result) == "table" and result or {}
+  result.token = token
+  result.skipped = type(result.skipped) == "table" and result.skipped or {}
+
+  if type(pending.callback) == "function" then
+    pending.callback(result)
+  end
+
+  if type(MultiBot.OnGroupMaterialMailResult) == "function" then
+    MultiBot.OnGroupMaterialMailResult(result)
+  end
+
+  return true
+end
+
+function Comm.RunGroupMaterialMail(callback)
+  local state = ensureBridgeState()
+  if state.connected ~= true then
+    state.lastError = "MATERIAL_MAIL_NOT_CONNECTED"
+    return false
+  end
+  if state.groupMaterialMailCapable ~= true then
+    state.lastError = "MATERIAL_MAIL_CAPABILITY_UNAVAILABLE"
+    return false
+  end
+  if next(state.groupMaterialMailCommands) ~= nil then
+    state.lastError = "MATERIAL_MAIL_BUSY"
+    return false
+  end
+
+  state.groupMaterialMailSeq = (tonumber(state.groupMaterialMailSeq) or 0) + 1
+  local token = tostring(math.floor(safeNow() * 1000)) .. "-mail-" .. tostring(state.groupMaterialMailSeq)
+  state.groupMaterialMailCommands[token] = {
+    callback = type(callback) == "function" and callback or nil,
+    startedAt = safeNow(),
+    batch = nil,
+  }
+
+  if not Comm.Send("RUN", "GROUP_MATERIAL_MAIL~" .. token .. "~MATERIALS_V1") then
+    state.groupMaterialMailCommands[token] = nil
+    state.lastError = "MATERIAL_MAIL_SEND_FAILED"
+    return false
+  end
+
+  if MultiBot and type(MultiBot.TimerAfter) == "function" then
+    MultiBot.TimerAfter(15.0, function()
+      local live = ensureBridgeState()
+      if not live.groupMaterialMailCommands[token] then
+        return
+      end
+
+      live.lastError = "MATERIAL_MAIL_TIMEOUT~" .. token
+      Comm.FinishGroupMaterialMailCommand(token, {
+        status = "ERR",
+        reason = "TIMEOUT",
+        matchedBots = 0,
+        sentBots = 0,
+        skippedBots = 0,
+        truncatedBots = 0,
+        sentStacks = 0,
+        remainingStacks = 0,
+        sentItems = 0,
+        sentMails = 0,
+      })
+    end)
+  end
+
+  return token
+end
+
+function Comm.HandleGroupMaterialMailProtocolError(requestType, token, reason, state)
+  if requestType ~= "GROUP_MATERIAL_MAIL" then
+    return false
+  end
+
+  state = type(state) == "table" and state or ensureBridgeState()
+  if state.groupMaterialMailCommands[token] then
+    Comm.FinishGroupMaterialMailCommand(token, {
+      status = "ERR",
+      reason = reason,
+      matchedBots = 0,
+      sentBots = 0,
+      skippedBots = 0,
+      truncatedBots = 0,
+      sentStacks = 0,
+      remainingStacks = 0,
+      sentItems = 0,
+      sentMails = 0,
+    })
+  end
+  return true
 end
 
 local function validateStrategyMutationChanges(changes)
@@ -5016,6 +5126,25 @@ end
 
 function Comm.MarkDisconnected(reason)
   local state = ensureBridgeState()
+  local pendingMaterialMailTokens = {}
+  for token in pairs(state.groupMaterialMailCommands or {}) do
+    pendingMaterialMailTokens[#pendingMaterialMailTokens + 1] = token
+  end
+  for _, token in ipairs(pendingMaterialMailTokens) do
+    Comm.FinishGroupMaterialMailCommand(token, {
+      status = "ERR",
+      reason = "DISCONNECTED",
+      matchedBots = 0,
+      sentBots = 0,
+      skippedBots = 0,
+      truncatedBots = 0,
+      sentStacks = 0,
+      remainingStacks = 0,
+      sentItems = 0,
+      sentMails = 0,
+    })
+  end
+  state.groupMaterialMailCommands = {}
   state.connectionGeneration = state.connectionGeneration + 1
   state.connected = false
   state.server = nil
@@ -5311,6 +5440,7 @@ function Comm.MarkDisconnected(reason)
   state.formationQueryActive = nil
   state.strategyMutationCapable = false
   state.summonCapable = false
+  state.groupMaterialMailCapable = false
 state.selfStrategyCapable = false
 state.selfActionCapable = false
   state.outfitCapable = false
@@ -7574,6 +7704,9 @@ local function finishCapabilityResolution(state, debugOpcode, payload)
   if MultiBot.RefreshEnchantingEveryButtons then
     MultiBot.RefreshEnchantingEveryButtons()
   end
+  if type(MultiBot.RefreshGroupMaterialMailButton) == "function" then
+    MultiBot.RefreshGroupMaterialMailButton()
+  end
 end
 
 local function handleCapabilityMessage(opcode, payload, state)
@@ -7883,6 +8016,112 @@ local function handleProfessionRecipeTargetResponse(payload)
   return Comm.ApplyProfessionRecipeTargetResultPayload(payload)
 end
 
+function Comm.HandleMaterialMailBegin(payload, state)
+  local fields = splitFields(payload or "")
+  if #fields ~= 3 then
+    state.lastError = "MATERIAL_MAIL_BEGIN_BAD_FIELD_COUNT"
+    return true
+  end
+
+  local token = trim(fields[1])
+  local scope = string.upper(trim(fields[2]))
+  local matchedBots = parseBoundedInteger(fields[3], 0, 40)
+  local pending = isValidStateToken(token) and state.groupMaterialMailCommands[token] or nil
+  if type(pending) ~= "table" or (scope ~= "PARTY" and scope ~= "RAID" and scope ~= "GROUP") or matchedBots == nil then
+    state.lastError = "MATERIAL_MAIL_BEGIN_INVALID"
+    return true
+  end
+
+  pending.batch = {
+    scope = scope,
+    matchedBots = matchedBots,
+    skipped = {},
+  }
+  state.connected = true
+  state.lastError = nil
+  return true
+end
+
+function Comm.HandleMaterialMailSkip(payload, state)
+  local fields = splitFields(payload or "")
+  if #fields ~= 3 then
+    state.lastError = "MATERIAL_MAIL_SKIP_BAD_FIELD_COUNT"
+    return true
+  end
+
+  local token = trim(fields[1])
+  local botName = urlDecodeFieldStrict(fields[2], 64, false)
+  local reason = urlDecodeFieldStrict(fields[3], 64, false)
+  reason = reason and string.upper(trim(reason)) or nil
+  local pending = isValidStateToken(token) and state.groupMaterialMailCommands[token] or nil
+  local batch = type(pending) == "table" and pending.batch or nil
+  if type(batch) ~= "table" or not botName or not reason or reason == "" or #batch.skipped >= 40 then
+    state.lastError = "MATERIAL_MAIL_SKIP_INVALID"
+    return true
+  end
+
+  batch.skipped[#batch.skipped + 1] = {
+    name = botName,
+    reason = reason,
+  }
+  return true
+end
+
+function Comm.HandleMaterialMailEnd(payload, state)
+  local fields = splitFields(payload or "")
+  if #fields ~= 10 then
+    state.lastError = "MATERIAL_MAIL_END_BAD_FIELD_COUNT"
+    return true
+  end
+
+  local token = trim(fields[1])
+  local status = string.upper(trim(fields[2]))
+  local sentBots = parseBoundedInteger(fields[3], 0, 40)
+  local skippedBots = parseBoundedInteger(fields[4], 0, 40)
+  local truncatedBots = parseBoundedInteger(fields[5], 0, 40)
+  local sentStacks = parseBoundedInteger(fields[6], 0, 480)
+  local remainingStacks = parseBoundedInteger(fields[7], 0, 1000000)
+  local sentItems = parseBoundedInteger(fields[8], 0, 4294967295)
+  local sentMails = parseBoundedInteger(fields[9], 0, 40)
+  local reason = urlDecodeFieldStrict(fields[10], 64, false)
+  reason = reason and string.upper(trim(reason)) or nil
+
+  local pending = isValidStateToken(token) and state.groupMaterialMailCommands[token] or nil
+  local batch = type(pending) == "table" and pending.batch or nil
+  if type(batch) ~= "table"
+      or (status ~= "OK" and status ~= "PARTIAL" and status ~= "ERR")
+      or sentBots == nil
+      or skippedBots == nil
+      or truncatedBots == nil
+      or sentStacks == nil
+      or remainingStacks == nil
+      or sentItems == nil
+      or sentMails == nil
+      or not reason
+      or skippedBots ~= #batch.skipped then
+    state.lastError = "MATERIAL_MAIL_END_INVALID"
+    return true
+  end
+
+  state.connected = true
+  state.lastError = status == "ERR" and ("MATERIAL_MAIL_" .. reason) or nil
+  Comm.FinishGroupMaterialMailCommand(token, {
+    status = status,
+    reason = reason,
+    scope = batch.scope,
+    matchedBots = batch.matchedBots,
+    sentBots = sentBots,
+    skippedBots = skippedBots,
+    truncatedBots = truncatedBots,
+    sentStacks = sentStacks,
+    remainingStacks = remainingStacks,
+    sentItems = sentItems,
+    sentMails = sentMails,
+    skipped = batch.skipped,
+  })
+  return true
+end
+
 -- New structured response handlers should be registered here instead of adding
 -- another large branch directly inside Comm.HandleAddonMessage.
 local STRUCTURED_OPCODE_HANDLERS = {
@@ -7894,6 +8133,9 @@ local STRUCTURED_OPCODE_HANDLERS = {
   TALENT_SPEC_CURRENT = handleTalentSpecCurrentResponse,
   TALENT_SPEC_APPLY_RESULT = handleTalentSpecApplyResponse,
   CRAFT_RECIPE_TARGET_RESULT = handleProfessionRecipeTargetResponse,
+  MATERIAL_MAIL_BEGIN = Comm.HandleMaterialMailBegin,
+  MATERIAL_MAIL_SKIP = Comm.HandleMaterialMailSkip,
+  MATERIAL_MAIL_END = Comm.HandleMaterialMailEnd,
 }
 
 function Comm.HandleSummonAddonMessage(opcode, payload, state)
@@ -10122,6 +10364,8 @@ function Comm.HandleAddonMessage(prefix, message, distribution, sender)
           return true
         elseif Comm.HandleSummonProtocolError(requestType, token, reason, state) then
           return true
+        elseif Comm.HandleGroupMaterialMailProtocolError(requestType, token, reason, state) then
+          return true
         elseif requestType == "LOOT_RULE_ITEM" and state.lootRuleItemCommands[token] then
           local pending = state.lootRuleItemCommands[token]
           state.lootRuleItemCommands[token] = nil
@@ -10196,6 +10440,8 @@ function Comm.OnPlayerEnteringWorld()
   state.strategyMutationCapable = false
   state.summonCapable = false
   state.summonCommands = {}
+  state.groupMaterialMailCapable = false
+  state.groupMaterialMailCommands = {}
 state.selfStrategyCapable = false
 state.selfActionCapable = false
   state.outfitCapable = false

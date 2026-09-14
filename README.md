@@ -78,6 +78,7 @@ The project is currently **bridge-first / mostly chatless** rather than fully ch
 | **Quests** | Bridge-backed quest list and structured bot quest abandon. Native quest sharing remains available. |
 | **Loot** | Structured loot profiles and exact persistent always-loot item add/remove. |
 | **Group tools** | Formation, Roll, RTI, Pull Control, Disperse and other migrated group controls. |
+| **Material mail** | A confirmed action in “commands for all bots” sends supported resources from eligible online party/raid bots to the current character and prints one aggregate report. |
 | **Character information** | Bot skills, reputations, currencies/emblems, spellbook, stats and PvP stats. |
 | **Outfits** | Outfit listing and actions through the Bridge. |
 | **SelfBot** | Dedicated enable/disable, strategy and selected action support. |
@@ -130,6 +131,7 @@ INVENTORY_BULK_SELL_V1
 INVENTORY_OPEN_V1
 ITEM_DEPOSIT_EXACT_V1
 GROUP_ROLL_V1
+GROUP_MATERIAL_MAIL_V1
 ENCHANT_TRADE_V1
 CRAFT_RECIPE_TARGET_V1
 QUEST_ABANDON_V1
