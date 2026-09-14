@@ -2566,8 +2566,8 @@ local function showMaterialMailUiError(message)
 end
 
 local function addMaterialMailChatLine(message)
-    if DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.AddMessage then
-        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99MultiBot|r: " .. tostring(message or ""))
+    if MultiBot.AddStatusChatLine then
+        MultiBot.AddStatusChatLine(message)
     end
 end
 

@@ -57,33 +57,43 @@ end
 
 local function createStayFollowUI(tLeft)
     tLeft.addButton("Stay", -136, 0, "Interface\\AddOns\\MultiBot\\Icons\\command_stay.blp", MultiBot.L("tips.stallow.stay")).doLeft = function(button)
-        if MultiBot.ActionToGroup("stay") then
-            button.parent.buttons["Follow"].doShow()
-            button.parent.buttons["ExpandFollow"].setDisable()
-            button.parent.buttons["ExpandStay"].setEnable()
-            button.doHide()
-        end
+        MultiBot.ActionToGroup("stay", function(result)
+            if result and (result.status == "ok" or result.status == "legacy") then
+                button.parent.buttons["Follow"].doShow()
+                button.parent.buttons["ExpandFollow"].setDisable()
+                button.parent.buttons["ExpandStay"].setEnable()
+                button.doHide()
+            end
+        end)
     end
 
     tLeft.addButton("Follow", -136, 0, "Interface\\AddOns\\MultiBot\\Icons\\command_follow.blp", MultiBot.L("tips.stallow.follow")).doHide().doLeft = function(button)
-        if MultiBot.ActionToGroup("follow") then
-            button.parent.buttons["Stay"].doShow()
-            button.parent.buttons["ExpandFollow"].setEnable()
-            button.parent.buttons["ExpandStay"].setDisable()
-            button.doHide()
-        end
+        MultiBot.ActionToGroup("follow", function(result)
+            if result and (result.status == "ok" or result.status == "legacy") then
+                button.parent.buttons["Stay"].doShow()
+                button.parent.buttons["ExpandFollow"].setEnable()
+                button.parent.buttons["ExpandStay"].setDisable()
+                button.doHide()
+            end
+        end)
     end
 
     tLeft.addButton("ExpandStay", -136, 0, "Interface\\AddOns\\MultiBot\\Icons\\command_stay.blp", MultiBot.tips.expand.stay).doHide().setDisable().doLeft = function(button)
-        MultiBot.ActionToGroup("stay")
-        button.parent.buttons["ExpandFollow"].setDisable()
-        button.setEnable()
+        MultiBot.ActionToGroup("stay", function(result)
+            if result and (result.status == "ok" or result.status == "legacy") then
+                button.parent.buttons["ExpandFollow"].setDisable()
+                button.setEnable()
+            end
+        end)
     end
 
     tLeft.addButton("ExpandFollow", -170, 0, "Interface\\AddOns\\MultiBot\\Icons\\command_follow.blp", MultiBot.tips.expand.follow).doHide().doLeft = function(button)
-        MultiBot.ActionToGroup("follow")
-        button.parent.buttons["ExpandStay"].setDisable()
-        button.setEnable()
+        MultiBot.ActionToGroup("follow", function(result)
+            if result and (result.status == "ok" or result.status == "legacy") then
+                button.parent.buttons["ExpandStay"].setDisable()
+                button.setEnable()
+            end
+        end)
     end
 end
 

@@ -44,6 +44,7 @@ local CAPABILITY_STATE_FIELDS = {
   [STATE_FRAMING_CAPABILITY] = "stateFramingCapable",
   [STRATEGY_MUTATION_CAPABILITY] = "strategyMutationCapable",
   ["SUMMON_V1"] = "summonCapable",
+  ["GROUP_ORDER_V1"] = "groupOrderCapable",
   ["GROUP_MATERIAL_MAIL_V1"] = "groupMaterialMailCapable",
   ["SELF_STRATEGY_V1"] = "selfStrategyCapable",
   [SELF_ACTION_CAPABILITY] = "selfActionCapable",
@@ -342,6 +343,7 @@ local function ensureBridgeState()
   state.pendingStateRefreshByBot = state.pendingStateRefreshByBot or {}
   state.strategyMutationCapable = state.strategyMutationCapable or false
   state.summonCapable = state.summonCapable or false
+  state.groupOrderCapable = state.groupOrderCapable or false
   state.groupMaterialMailCapable = state.groupMaterialMailCapable or false
   state.selfStrategyCapable = state.selfStrategyCapable or false
   state.selfActionCapable = state.selfActionCapable or false
@@ -399,6 +401,8 @@ local function ensureBridgeState()
   state.strategyMutationCommands = state.strategyMutationCommands or {}
   state.summonSeq = state.summonSeq or 0
   state.summonCommands = state.summonCommands or {}
+  state.groupOrderSeq = state.groupOrderSeq or 0
+  state.groupOrderCommands = state.groupOrderCommands or {}
   state.groupMaterialMailSeq = state.groupMaterialMailSeq or 0
   state.groupMaterialMailCommands = state.groupMaterialMailCommands or {}
   state.selfStrategySeq = state.selfStrategySeq or 0
@@ -666,6 +670,52 @@ local function systemMessage(message)
     DEFAULT_CHAT_FRAME:AddMessage(message)
   elseif type(print) == "function" then
     print(message)
+  end
+end
+
+function MultiBot.AddStatusChatLine(message)
+  systemMessage("|cff33ff99MultiBot|r: " .. tostring(message or ""))
+end
+
+function Comm.GetBridgeCommandReasonText(reason)
+  reason = string.upper(trim(reason or "UNKNOWN"))
+  return L("command.status.reason." .. reason, L("command.status.reason.UNKNOWN", reason))
+end
+
+function Comm.GetBridgeCommandLabel(result)
+  if result.kind == "summon" then
+    return L("command.status.summon", "Summon")
+  end
+
+  local command = string.lower(trim(result.command or ""))
+  local key = "command.status." .. string.gsub(command, "[^%w]+", "_")
+  return L(key, command ~= "" and command or L("command.status.order", "Group order"))
+end
+
+function MultiBot.NotifyBridgeCommandResult(result)
+  result = type(result) == "table" and result or {}
+  local label = Comm.GetBridgeCommandLabel(result)
+  local matched = tonumber(result.matched) or 0
+  local succeeded = tonumber(result.succeeded) or 0
+  local failed = tonumber(result.failed) or 0
+
+  if result.status == "ok" then
+    MultiBot.AddStatusChatLine(string.format(L("command.status.result.ok", "%s: applied to %d/%d bot(s)."), label, succeeded, matched))
+  elseif result.status == "partial" then
+    MultiBot.AddStatusChatLine(string.format(
+      L("command.status.result.partial", "%s: applied to %d/%d bot(s), failed: %d (%s)."),
+      label,
+      succeeded,
+      matched,
+      failed,
+      Comm.GetBridgeCommandReasonText(result.reason)
+    ))
+  else
+    MultiBot.AddStatusChatLine(string.format(
+      L("command.status.result.failed", "%s: not applied (%s)."),
+      label,
+      Comm.GetBridgeCommandReasonText(result.reason)
+    ))
   end
 end
 
@@ -1832,6 +1882,9 @@ function Comm.FinishSummonCommand(token, result)
     MultiBot.OnSummonCommandApplied(result)
   end
 
+  result.kind = "summon"
+  MultiBot.NotifyBridgeCommandResult(result)
+
   return true
 end
 
@@ -1854,6 +1907,11 @@ function Comm.RunSummonCommand(scope, target, callback)
       or (scope ~= "BOT" and target ~= "") then
     state.lastError = "SUMMON_INVALID_TARGET"
     return false
+  end
+  for pendingToken, pending in pairs(state.summonCommands) do
+    if pending.scope == scope and string.lower(pending.target or "") == string.lower(target) then
+      return pendingToken
+    end
   end
   if countTableEntries(state.summonCommands) >= 64 then
     state.lastError = "SUMMON_TOO_MANY_REQUESTS"
@@ -1902,7 +1960,11 @@ function MultiBot.SummonBots(scope, target, callback)
     return token
   end
 
-  systemMessage(L("formation.query.unavailable", "Bridge unavailable."))
+  MultiBot.NotifyBridgeCommandResult({
+    kind = "summon",
+    status = "error",
+    reason = "BRIDGE_UNAVAILABLE",
+  })
   return false
 end
 
@@ -5126,6 +5188,21 @@ end
 
 function Comm.MarkDisconnected(reason)
   local state = ensureBridgeState()
+  local pendingGroupOrderTokens = {}
+  for token in pairs(state.groupOrderCommands or {}) do
+    pendingGroupOrderTokens[#pendingGroupOrderTokens + 1] = token
+  end
+  for _, token in ipairs(pendingGroupOrderTokens) do
+    Comm.FinishGroupOrderCommand(token, {
+      status = "error",
+      matched = 0,
+      succeeded = 0,
+      failed = 0,
+      reason = "DISCONNECTED",
+    })
+  end
+  state.groupOrderCommands = {}
+
   local pendingMaterialMailTokens = {}
   for token in pairs(state.groupMaterialMailCommands or {}) do
     pendingMaterialMailTokens[#pendingMaterialMailTokens + 1] = token
@@ -8221,6 +8298,209 @@ function Comm.HandleSummonProtocolError(requestType, token, reason, state)
   return true
 end
 
+Comm.GROUP_ORDER_COMMANDS = Comm.GROUP_ORDER_COMMANDS or {
+  ["stay"] = true,
+  ["follow"] = true,
+  ["flee"] = true,
+  ["@ranged flee"] = true,
+  ["@melee flee"] = true,
+  ["@healer flee"] = true,
+  ["@dps flee"] = true,
+  ["@tank flee"] = true,
+}
+
+function Comm.IsGroupOrderCapable()
+  local state = ensureBridgeState()
+  return state.connected == true and state.groupOrderCapable == true
+end
+
+function Comm.FinishGroupOrderCommand(token, result)
+  local state = ensureBridgeState()
+  local pending = state.groupOrderCommands[token]
+  if type(pending) ~= "table" then
+    return false
+  end
+
+  state.groupOrderCommands[token] = nil
+  result = type(result) == "table" and result or {}
+  result.token = token
+  result.scope = result.scope or pending.scope
+  result.target = result.target or pending.target
+  result.command = result.command or pending.command
+  result.kind = "group_order"
+
+  if type(pending.callback) == "function" then
+    pending.callback(result)
+  end
+
+  if type(MultiBot.OnGroupOrderApplied) == "function" then
+    MultiBot.OnGroupOrderApplied(result)
+  end
+
+  MultiBot.NotifyBridgeCommandResult(result)
+  return true
+end
+
+function Comm.RunGroupOrderCommand(scope, target, command, callback)
+  local state = ensureBridgeState()
+  if state.connected ~= true then
+    state.lastError = "GROUP_ORDER_NOT_CONNECTED"
+    return false
+  end
+  if state.groupOrderCapable ~= true then
+    state.lastError = "GROUP_ORDER_CAPABILITY_UNAVAILABLE"
+    return false
+  end
+
+  scope = string.upper(trim(scope or "BOT"))
+  target = trim(target or "")
+  command = string.lower(trim(command or ""))
+  if not Comm.GROUP_ORDER_COMMANDS[command]
+      or (scope ~= "RAID" and scope ~= "GROUP" and scope ~= "PARTY" and scope ~= "BOT")
+      or (scope == "BOT" and target == "")
+      or (scope ~= "BOT" and target ~= "") then
+    state.lastError = "GROUP_ORDER_INVALID_REQUEST"
+    return false
+  end
+  for pendingToken, pending in pairs(state.groupOrderCommands) do
+    if pending.scope == scope
+        and string.lower(pending.target or "") == string.lower(target)
+        and pending.command == command then
+      return pendingToken
+    end
+  end
+  if countTableEntries(state.groupOrderCommands) >= 32 then
+    state.lastError = "GROUP_ORDER_TOO_MANY_REQUESTS"
+    return false
+  end
+
+  state.groupOrderSeq = (tonumber(state.groupOrderSeq) or 0) + 1
+  local token = tostring(math.floor(safeNow() * 1000)) .. "-order-" .. tostring(state.groupOrderSeq)
+  state.groupOrderCommands[token] = {
+    scope = scope,
+    target = target,
+    command = command,
+    callback = type(callback) == "function" and callback or nil,
+    startedAt = safeNow(),
+  }
+
+  local payload = "GROUP_ORDER~" .. scope .. "~" .. urlEncodeField(target) .. "~" .. token .. "~" .. urlEncodeField(command)
+  if not Comm.Send("RUN", payload) then
+    state.groupOrderCommands[token] = nil
+    state.lastError = "GROUP_ORDER_SEND_FAILED"
+    return false
+  end
+
+  if MultiBot and type(MultiBot.TimerAfter) == "function" then
+    MultiBot.TimerAfter(5.0, function()
+      local live = ensureBridgeState()
+      if not live.groupOrderCommands[token] then
+        return
+      end
+
+      live.lastError = "GROUP_ORDER_TIMEOUT~" .. token
+      Comm.FinishGroupOrderCommand(token, {
+        status = "timeout",
+        matched = 0,
+        succeeded = 0,
+        failed = 0,
+        reason = "TIMEOUT",
+      })
+    end)
+  end
+
+  return token
+end
+
+function Comm.HandleGroupOrderAddonMessage(opcode, payload, state)
+  if opcode ~= "GROUP_ORDER_ACK" then
+    return false
+  end
+
+  state = type(state) == "table" and state or ensureBridgeState()
+  local fields = splitFields(payload or "")
+  if #fields ~= 8 then
+    state.lastError = "GROUP_ORDER_ACK_BAD_FIELD_COUNT"
+    return true
+  end
+
+  local scope = string.upper(trim(fields[1]))
+  local target = urlDecodeFieldStrict(fields[2], 64, true)
+  local token = trim(fields[3])
+  local command = urlDecodeFieldStrict(fields[4], 160, false)
+  command = command and string.lower(trim(command)) or nil
+  local matched = parseBoundedInteger(fields[5], 0, 128)
+  local succeeded = parseBoundedInteger(fields[6], 0, 128)
+  local failed = parseBoundedInteger(fields[7], 0, 128)
+  local reason = urlDecodeFieldStrict(fields[8], 64, false)
+  reason = reason and string.upper(trim(reason)) or nil
+  local pending = state.groupOrderCommands[token]
+
+  if (scope ~= "RAID" and scope ~= "GROUP" and scope ~= "PARTY" and scope ~= "BOT")
+      or target == nil
+      or not isValidStateToken(token)
+      or not Comm.GROUP_ORDER_COMMANDS[command or ""]
+      or matched == nil
+      or succeeded == nil
+      or failed == nil
+      or reason == nil
+      or succeeded + failed > matched
+      or type(pending) ~= "table"
+      or pending.scope ~= scope
+      or string.lower(pending.target or "") ~= string.lower(target)
+      or pending.command ~= command then
+    state.lastError = "GROUP_ORDER_ACK_INVALID"
+    return true
+  end
+
+  state.connected = true
+  state.lastError = reason == "OK" and nil or ("GROUP_ORDER_" .. reason)
+  debugPrint("ADDON:RX", "GROUP_ORDER_ACK", payload or "")
+
+  local status = "failed"
+  if reason == "RATE_LIMIT" then
+    status = "error"
+  elseif reason == "BOT_LIMIT" and succeeded > 0 then
+    status = "partial"
+  elseif matched == 0 then
+    status = "no_match"
+  elseif succeeded == matched and failed == 0 then
+    status = "ok"
+  elseif succeeded > 0 then
+    status = "partial"
+  end
+
+  Comm.FinishGroupOrderCommand(token, {
+    status = status,
+    scope = scope,
+    target = target,
+    command = command,
+    matched = matched,
+    succeeded = succeeded,
+    failed = failed,
+    reason = reason,
+  })
+  return true
+end
+
+function Comm.HandleGroupOrderProtocolError(requestType, token, reason, state)
+  if requestType ~= "GROUP_ORDER" then
+    return false
+  end
+
+  state = type(state) == "table" and state or ensureBridgeState()
+  if state.groupOrderCommands[token] then
+    Comm.FinishGroupOrderCommand(token, {
+      status = "error",
+      matched = 0,
+      succeeded = 0,
+      failed = 0,
+      reason = reason,
+    })
+  end
+  return true
+end
+
 function Comm.HandleAddonMessage(prefix, message, distribution, sender)
   if prefix ~= Comm.prefix then
     return false
@@ -8288,6 +8568,10 @@ function Comm.HandleAddonMessage(prefix, message, distribution, sender)
   end
 
   if Comm.HandleSummonAddonMessage(opcode, payload, state) then
+    return true
+  end
+
+  if Comm.HandleGroupOrderAddonMessage(opcode, payload, state) then
     return true
   end
 
@@ -10364,6 +10648,8 @@ function Comm.HandleAddonMessage(prefix, message, distribution, sender)
           return true
         elseif Comm.HandleSummonProtocolError(requestType, token, reason, state) then
           return true
+        elseif Comm.HandleGroupOrderProtocolError(requestType, token, reason, state) then
+          return true
         elseif Comm.HandleGroupMaterialMailProtocolError(requestType, token, reason, state) then
           return true
         elseif requestType == "LOOT_RULE_ITEM" and state.lootRuleItemCommands[token] then
@@ -10440,6 +10726,8 @@ function Comm.OnPlayerEnteringWorld()
   state.strategyMutationCapable = false
   state.summonCapable = false
   state.summonCommands = {}
+  state.groupOrderCapable = false
+  state.groupOrderCommands = {}
   state.groupMaterialMailCapable = false
   state.groupMaterialMailCommands = {}
 state.selfStrategyCapable = false

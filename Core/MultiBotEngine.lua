@@ -616,6 +616,73 @@ local function _mbRouteStrategyMutation(action, commandScope, target)
 	return MB_STRATEGY_ROUTE_BLOCKED
 end
 
+local MB_GROUP_ORDER_ROUTE_NOT_ORDER = "NOT_ORDER"
+local MB_GROUP_ORDER_ROUTE_BRIDGE = "BRIDGE"
+local MB_GROUP_ORDER_ROUTE_LEGACY = "LEGACY"
+local MB_GROUP_ORDER_ROUTE_BLOCKED = "BLOCKED"
+
+local MB_GROUP_ORDER_COMMANDS = {
+	["stay"] = true,
+	["follow"] = true,
+	["flee"] = true,
+	["@ranged flee"] = true,
+	["@melee flee"] = true,
+	["@healer flee"] = true,
+	["@dps flee"] = true,
+	["@tank flee"] = true,
+}
+
+local function _mbNormalizeGroupOrder(action)
+	if(type(action) ~= "string") then return nil end
+	local command = string.lower(string.gsub(string.gsub(action, "^%s+", ""), "%s+$", ""))
+	return MB_GROUP_ORDER_COMMANDS[command] and command or nil
+end
+
+local function _mbRouteGroupOrder(action, commandScope, target, onComplete)
+	local command = _mbNormalizeGroupOrder(action)
+	if(not command) then return MB_GROUP_ORDER_ROUTE_NOT_ORDER end
+
+	commandScope = string.upper(commandScope or "BOT")
+	target = target or ""
+	local comm = MultiBot.Comm
+	local bridgeReady = MultiBot.bridge
+		and MultiBot.bridge.connected == true
+		and MultiBot.bridge.groupOrderCapable == true
+		and comm
+		and type(comm.RunGroupOrderCommand) == "function"
+
+	if(not bridgeReady) then
+		if(MultiBot.allowLegacyChatFallback == true) then
+			return MB_GROUP_ORDER_ROUTE_LEGACY
+		end
+
+		if(MultiBot.NotifyBridgeCommandResult) then
+			MultiBot.NotifyBridgeCommandResult({
+				kind = "group_order",
+				command = command,
+				status = "error",
+				reason = "BRIDGE_UNAVAILABLE",
+			})
+		end
+		return MB_GROUP_ORDER_ROUTE_BLOCKED
+	end
+
+	local token = comm.RunGroupOrderCommand(commandScope, target, command, onComplete)
+	if(token ~= false and token ~= nil) then
+		return MB_GROUP_ORDER_ROUTE_BRIDGE, token
+	end
+
+	if(MultiBot.NotifyBridgeCommandResult) then
+		MultiBot.NotifyBridgeCommandResult({
+			kind = "group_order",
+			command = command,
+			status = "error",
+			reason = "SEND_FAILED",
+		})
+	end
+	return MB_GROUP_ORDER_ROUTE_BLOCKED
+end
+
 local function _mbCanUseBridgeSelfStrategyMutation()
 	return MultiBot.bridge
 		and MultiBot.bridge.connected == true
@@ -769,10 +836,18 @@ MultiBot.ActionToUnitStrategy = function(pAction, oTarget, onComplete)
 	-- Ordinary bot semantics remain unchanged.
 	return MultiBot.ActionToTarget(pAction, targetName)
 end
-MultiBot.ActionToTarget = function(pAction, oTarget)
+MultiBot.ActionToTarget = function(pAction, oTarget, onComplete)
 	local tName = MultiBot.IF(oTarget == nil, UnitName("target"), oTarget)
 
 	if(tName ~= nil and tName ~= "Unknown Entity") then
+		local orderRoute, orderToken = _mbRouteGroupOrder(pAction, "BOT", tName, onComplete)
+		if(orderRoute == MB_GROUP_ORDER_ROUTE_BRIDGE) then
+			return true, "bridge", orderToken
+		end
+		if(orderRoute == MB_GROUP_ORDER_ROUTE_BLOCKED) then
+			return false, "blocked"
+		end
+
 		local route = _mbRouteStrategyMutation(pAction, "BOT", tName)
 		if(route == MB_STRATEGY_ROUTE_BRIDGE) then
 			return true, "bridge"
@@ -782,6 +857,9 @@ MultiBot.ActionToTarget = function(pAction, oTarget)
 		end
 
 		SendChatMessage(pAction, "WHISPER", nil, tName)
+		if(orderRoute == MB_GROUP_ORDER_ROUTE_LEGACY and type(onComplete) == "function") then
+			onComplete({ status = "legacy", command = pAction, target = tName })
+		end
 		return true, "chat"
 	end
 
@@ -824,8 +902,16 @@ MultiBot.ActionToTargetOrGroup = function(pAction)
 	return false
 end
 
-MultiBot.ActionToGroup = function(pAction)
+MultiBot.ActionToGroup = function(pAction, onComplete)
 	if(GetNumRaidMembers() > 5) then
+		local orderRoute, orderToken = _mbRouteGroupOrder(pAction, "RAID", "", onComplete)
+		if(orderRoute == MB_GROUP_ORDER_ROUTE_BRIDGE) then
+			return true, "bridge", orderToken
+		end
+		if(orderRoute == MB_GROUP_ORDER_ROUTE_BLOCKED) then
+			return false, "blocked"
+		end
+
 		local route = _mbRouteStrategyMutation(pAction, "RAID", "")
 		if(route == MB_STRATEGY_ROUTE_BRIDGE) then
 			return true
@@ -834,10 +920,21 @@ MultiBot.ActionToGroup = function(pAction)
 			return false
 		end
 		SendChatMessage(pAction, "RAID")
+		if(orderRoute == MB_GROUP_ORDER_ROUTE_LEGACY and type(onComplete) == "function") then
+			onComplete({ status = "legacy", command = pAction })
+		end
 		return true
 	end
 
 	if(GetNumPartyMembers() > 0) then
+		local orderRoute, orderToken = _mbRouteGroupOrder(pAction, "PARTY", "", onComplete)
+		if(orderRoute == MB_GROUP_ORDER_ROUTE_BRIDGE) then
+			return true, "bridge", orderToken
+		end
+		if(orderRoute == MB_GROUP_ORDER_ROUTE_BLOCKED) then
+			return false, "blocked"
+		end
+
 		local route = _mbRouteStrategyMutation(pAction, "PARTY", "")
 		if(route == MB_STRATEGY_ROUTE_BRIDGE) then
 			return true
@@ -846,7 +943,27 @@ MultiBot.ActionToGroup = function(pAction)
 			return false
 		end
 		SendChatMessage(pAction, "PARTY")
+		if(orderRoute == MB_GROUP_ORDER_ROUTE_LEGACY and type(onComplete) == "function") then
+			onComplete({ status = "legacy", command = pAction })
+		end
 		return true
+	end
+
+	local command = _mbNormalizeGroupOrder(pAction)
+	if(command) then
+		local result = {
+			kind = "group_order",
+			command = command,
+			status = "error",
+			reason = "NO_GROUP",
+		}
+		if(MultiBot.NotifyBridgeCommandResult) then
+			MultiBot.NotifyBridgeCommandResult(result)
+		end
+		if(type(onComplete) == "function") then
+			onComplete(result)
+		end
+		return false, "blocked"
 	end
 
 	SendChatMessage(MultiBot.L("info.group"), "SAY")
