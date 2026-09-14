@@ -2747,7 +2747,7 @@ local function createAllBotsCommands(controlFrame)
         "MaterialMailAllBots",
         0,
         68,
-        "Mail_GMIcon",
+        "Interface\\Minimap\\Tracking\\Mailbox",
         string.format(MultiBot.L("tips.allbots.materialmail"), UnitName("player") or "")
     )
     MultiBot.groupMaterialMailButton.doLeft = function(button)
