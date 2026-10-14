@@ -1811,6 +1811,17 @@ function Comm.RequestTalentSpecList(name)
   return token
 end
 
+function Comm.CancelTalentSpecList(token)
+  local state = ensureBridgeState()
+  local active = state.talentSpecActive
+  if type(active) ~= "table" or trim(active.token) ~= trim(token) then
+    return false
+  end
+
+  state.talentSpecActive = nil
+  return true
+end
+
 function Comm.RunRtiCommand(scope, target, command)
   local state = ensureBridgeState()
 

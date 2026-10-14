@@ -618,8 +618,11 @@ MultiBot.addEvery = function(pFrame, pCombat, pNormal)
         self:setDisable()
       else
         -- sinon on envoie la requête au bot, et on active le bouton
-        MultiBot.spec:RequestList(self:getName(), self)
-        self:setEnable()
+        if MultiBot.spec:RequestList(self:getName(), self) then
+          self:setEnable()
+        else
+          self:setDisable()
+        end
       end
     end
 

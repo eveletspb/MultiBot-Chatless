@@ -261,6 +261,7 @@ Spec.initialised = true
 Spec.pending, Spec.buttons = nil, {}
 
 local SPEC_LEGACY_USAGE_FILTER_TTL = 5
+local SPEC_LIST_TIMEOUT_SECONDS = 5
 
 local function specNow()
     if GetTime then
@@ -421,13 +422,43 @@ local function suppressNextTalentUsageLines(botName)
     }
 end
 
+local function showSpecListFailure(botName, reason)
+    local message = MultiBot.L(
+        "talent.spec.list.failed",
+        "Could not load talent builds for %s (%s)."
+    )
+    message = string.format(message, tostring(botName or "?"), tostring(reason or "UNKNOWN"))
+
+    if DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.AddMessage then
+        DEFAULT_CHAT_FRAME:AddMessage(message, 1, 0.2, 0.2)
+    end
+end
+
+local function armSpecListTimeout(pending, token, comm)
+    MultiBot.TimerAfter(SPEC_LIST_TIMEOUT_SECONDS, function()
+        if Spec.pending ~= pending then
+            return
+        end
+
+        if token and comm and comm.CancelTalentSpecList then
+            comm.CancelTalentSpecList(token)
+        end
+        Spec.pending = nil
+        Spec:HideDropdown()
+        showSpecListFailure(pending.bot, "TIMEOUT")
+    end)
+end
+
 function Spec:RequestList(bot, wrapper)
+    if self.pending then
+        return self.pending.bot == bot
+    end
     if self.busy then
-        return                  --    on ignore le clic
+        return false
     end
     local frame = unwrapFrame(wrapper)
     if type(frame) ~= "userdata" then
-        return
+        return false
     end
 
     self:HideDropdown()
@@ -455,13 +486,26 @@ function Spec:RequestList(bot, wrapper)
         SendChatMessage("talents", "WHISPER", nil, bot)
     end
 
-    if comm and comm.RequestTalentSpecList and comm.RequestTalentSpecList(bot) then
-        return
+    if bridgeApplyCapable and comm and comm.RequestTalentSpecList then
+        local token = comm.RequestTalentSpecList(bot)
+        if token then
+            self.pending.bridgeToken = token
+            self.pending.requestToken = token
+            armSpecListTimeout(self.pending, token, comm)
+            return true
+        end
     end
 
     if MultiBot.allowLegacyChatFallback == true then
+        armSpecListTimeout(self.pending)
         SendChatMessage("talents spec list", "WHISPER", nil, bot)
+        return true
     end
+
+    self.pending = nil
+    self:HideDropdown()
+    showSpecListFailure(bot, MultiBot.bridge and MultiBot.bridge.lastError or "BRIDGE_UNAVAILABLE")
+    return false
 end
 
 
@@ -747,6 +791,13 @@ function MultiBot.ApplyBridgeTalentSpecEnd(botName, token)
 
     if pending.bridgeToken and token and pending.bridgeToken ~= token then
         return false
+    end
+
+    if #pending.specs == 0 then
+        Spec.pending = nil
+        Spec:HideDropdown()
+        showSpecListFailure(botName, "NO_BUILDS_AVAILABLE")
+        return true
     end
 
     Spec:BuildDropdown()
