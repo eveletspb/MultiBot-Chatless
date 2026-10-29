@@ -11,6 +11,7 @@ end
 local function CreateStyledFrame()
     -- Main frame
     local f = CreateFrame("Frame", "MultiBotPVPFrame", UIParent)
+    MultiBot.RegisterScaledFrame(f)
     f:SetSize(420, 490)
     f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
     f:Hide()

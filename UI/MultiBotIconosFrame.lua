@@ -951,6 +951,8 @@ function MultiBot.InitializeIconosFrame()
     end
 
     local window = aceGUI:Create("Window")
+
+    MultiBot.RegisterScaledFrame(window.frame)
     window:SetTitle(getLocalizedHeadline("tips.game.iconos", "Iconos"))
     window:SetStatusText("")
     window:SetWidth(ICONOS_UI_DEFAULTS.width)

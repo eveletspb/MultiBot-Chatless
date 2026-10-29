@@ -147,6 +147,7 @@ function AceUI.CreatePopupHost(title, width, height, missingDepMessage, persiste
     if not window then
         return nil
     end
+    MultiBot.RegisterScaledFrame(window.frame)
 
     window:SetTitle(title or "")
     window:SetWidth(width)

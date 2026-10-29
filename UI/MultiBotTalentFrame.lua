@@ -945,6 +945,8 @@ function MultiBot.InitializeTalentFrameModule()
         end
 
         local window = aceGUI:Create("Window")
+
+        MultiBot.RegisterScaledFrame(window.frame)
         if not window then
             return nil
         end

@@ -1387,6 +1387,8 @@ function MultiBot.InitializeOutfitFrame()
     end
 
     local window = aceGUI:Create("Window")
+
+    MultiBot.RegisterScaledFrame(window.frame)
     window:SetTitle(getWindowTitle(nil))
     window:SetLayout("Manual")
     window:SetWidth(OUTFIT_WINDOW_WIDTH)

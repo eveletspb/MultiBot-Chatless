@@ -310,6 +310,7 @@ function EnchantUI:EnsureWindow()
     local content
     if AceGUI then
         local window = AceGUI:Create("Window")
+        MultiBot.RegisterScaledFrame(window.frame)
         window:SetTitle(getWindowTitle(self.botName))
         window:SetWidth(ENCHANT_WINDOW_WIDTH)
         window:SetHeight(ENCHANT_WINDOW_HEIGHT)
@@ -325,6 +326,7 @@ function EnchantUI:EnsureWindow()
         if MultiBot.BindAceWindowPosition then MultiBot.BindAceWindowPosition(window, "bot_enchanting_popup") end
     else
         frame = CreateFrame("Frame", "MultiBotEnchantingFrame", UIParent)
+        MultiBot.RegisterScaledFrame(frame)
         frame:SetSize(ENCHANT_WINDOW_WIDTH, ENCHANT_WINDOW_HEIGHT)
         frame:SetPoint("CENTER", UIParent, "CENTER", -110, 20)
         frame:SetFrameStrata("DIALOG")

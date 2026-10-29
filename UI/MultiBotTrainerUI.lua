@@ -115,6 +115,7 @@ function TrainerUI:EnsureWindow()
 
     if AceGUI then
         local window = AceGUI:Create("Window")
+        MultiBot.RegisterScaledFrame(window.frame)
         window:SetTitle(getWindowTitle(self.botName))
         window:SetWidth(TRAINER_WINDOW_WIDTH)
         window:SetHeight(TRAINER_WINDOW_HEIGHT)
@@ -134,6 +135,7 @@ function TrainerUI:EnsureWindow()
         if MultiBot.BindAceWindowPosition then MultiBot.BindAceWindowPosition(window, "bot_trainer_popup") end
     else
         frame = CreateFrame("Frame", "MultiBotTrainerFrame", UIParent)
+        MultiBot.RegisterScaledFrame(frame)
         frame:SetSize(TRAINER_WINDOW_WIDTH, TRAINER_WINDOW_HEIGHT)
         frame:SetPoint("CENTER", UIParent, "CENTER", -120, 20)
         frame:SetFrameStrata("DIALOG")

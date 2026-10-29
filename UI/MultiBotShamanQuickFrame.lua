@@ -894,6 +894,8 @@ function ShamanQuick:EnsureWindow()
     end
 
     local window = aceGUI:Create("Window")
+
+    MultiBot.RegisterScaledFrame(window.frame)
     window:SetTitle(WINDOW_TITLE)
     window:SetLayout("Manual")
     window:SetWidth((WINDOW_PADDING_X * 2) + ROW_WIDTH)

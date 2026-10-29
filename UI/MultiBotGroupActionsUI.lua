@@ -166,6 +166,8 @@ function GroupActionsUI:EnsureRollWindow()
     end
 
     local window = AceGUI:Create("Window")
+
+    MultiBot.RegisterScaledFrame(window.frame)
     window:SetTitle(MultiBot.L("roll.window.title"))
     window:SetWidth(ROLL_WINDOW_WIDTH)
     window:SetHeight(ROLL_WINDOW_HEIGHT)

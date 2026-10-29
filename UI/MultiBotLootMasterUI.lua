@@ -1858,6 +1858,7 @@ local function CreateBasicFrame()
 
     if AceGUI and type(AceGUI.Create) == "function" then
         widget = AceGUI:Create("Window")
+        MultiBot.RegisterScaledFrame(widget.frame)
         widget:SetTitle(BuildLootMasterTitle())
         widget:SetWidth(FRAME_WIDTH)
         widget:SetHeight(FRAME_HEIGHT)
@@ -1876,6 +1877,7 @@ local function CreateBasicFrame()
         AddDarkBackdrop(contentParent, 0.90)
     else
         frame = CreateFrame("Frame", "MultiBotLootMasterFrame", UIParent)
+        MultiBot.RegisterScaledFrame(frame)
         frame:SetWidth(FRAME_WIDTH)
         frame:SetHeight(FRAME_HEIGHT)
         frame:SetPoint("CENTER", UIParent, "CENTER", 0, 40)
@@ -2048,7 +2050,10 @@ local function AcquireRow(frame, index)
                 CloseAllDropdowns()
             end
 
-            ownerRow.dropdown = ownerRow.dropdown or CreateFrame("Frame", nil, UIParent)
+            if not ownerRow.dropdown then
+                ownerRow.dropdown = CreateFrame("Frame", nil, UIParent)
+                MultiBot.RegisterScaledFrame(ownerRow.dropdown)
+            end
             local dropdown = ownerRow.dropdown
             dropdown:SetFrameStrata("TOOLTIP")
             dropdown:SetWidth(DROPDOWN_WIDTH + 72)

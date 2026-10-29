@@ -1051,6 +1051,7 @@ local LIFECYCLE_ENABLE_STEPS = {
   { name = "RegisterCoreEventsOnce", passSelf = true },
   { name = "Throttle_Init" },
   { name = "ApplyGlobalStrata" },
+  { name = "ApplyUIScale" },
   { name = "Minimap_Refresh" },
 }
 

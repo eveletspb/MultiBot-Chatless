@@ -838,11 +838,15 @@ function Spec:HideDropdown()
     self.activeWrapper = nil
 
     if self.dropdownWidget and type(self.dropdownWidget.Release) == "function" then
+        MultiBot.UnregisterScaledFrame(self.dropdownWidget.frame)
         self.dropdownWidget:Release()
         self.dropdownWidget = nil
     end
 
     if self.dropdown then
+        if self.dropdown._mbScaledStandalone then
+            MultiBot.UnregisterScaledFrame(self.dropdown)
+        end
         self.dropdown:Hide()
         self.dropdown:SetParent(nil)
         self.dropdown = nil
@@ -871,6 +875,8 @@ local function ensureDropdownFrame(specObject, parentFrame, isEmbedded)
         frame:SetFrameLevel((parentFrame and parentFrame:GetFrameLevel() or 1) + 5)
         frame:SetAllPoints(parentFrame)
     else
+        MultiBot.RegisterScaledFrame(frame)
+        frame._mbScaledStandalone = true
         local strataLevel = MultiBot.GetGlobalStrataLevel and MultiBot.GetGlobalStrataLevel()
         if strataLevel then
             frame:SetFrameStrata(strataLevel)
@@ -896,7 +902,8 @@ local function ensureDropdownFrame(specObject, parentFrame, isEmbedded)
                 activeFrame:StopMovingOrSizing()
                 local cx, cy = activeFrame:GetCenter()
                 local ux, uy = UIParent:GetCenter()
-                local dx, dy = (cx - ux), (cy - uy)
+                local ratio = activeFrame:GetEffectiveScale() / UIParent:GetEffectiveScale()
+                local dx, dy = (cx - ux / ratio), (cy - uy / ratio)
                 local charKey = getSpecDropdownCharacterKey()
                 setSpecDropdownPosition(charKey, { point = "CENTER", x = dx, y = dy })
             end)
@@ -1082,6 +1089,7 @@ function Spec:BuildDropdown()
     if aceGUI then
         local widget = aceGUI:Create("Window")
         if widget and widget.frame and widget.content then
+            MultiBot.RegisterScaledFrame(widget.frame)
             local title = "Set talents"
             if MultiBot and type(MultiBot.L) == "function" then
                 local localized = MultiBot.L("spec.list.title", title)
@@ -1102,7 +1110,9 @@ function Spec:BuildDropdown()
             local function saveWindowPosition()
                 local cx, cy = widget.frame:GetCenter()
                 local ux, uy = UIParent:GetCenter()
+                local ratio = widget.frame:GetEffectiveScale() / UIParent:GetEffectiveScale()
                 if cx and cy and ux and uy then
+                    ux, uy = ux / ratio, uy / ratio
                     setSpecDropdownPosition(getSpecDropdownCharacterKey(), {
                         point = "CENTER",
                         x = cx - ux,

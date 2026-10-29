@@ -216,6 +216,8 @@ function MultiBot.InitializeQuestLogFrame()
     assert(aceGUI, "AceGUI-3.0 is required for MB_QuestPopup")
 
     local window = aceGUI:Create("Window")
+
+    MultiBot.RegisterScaledFrame(window.frame)
     assert(window, "AceGUI-3.0 is required for MB_QuestPopup")
 
     window:SetTitle(QUEST_LOG)

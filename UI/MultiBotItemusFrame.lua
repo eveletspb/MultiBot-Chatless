@@ -826,6 +826,8 @@ function MultiBot.InitializeItemusFrame()
     end
 
     local window = aceGUI:Create("Window")
+
+    MultiBot.RegisterScaledFrame(window.frame)
     window:SetTitle(getLocalizedHeadline("tips.game.itemus", "Itemus"))
     window:SetLayout("Manual")
     window:SetWidth(ITEMUS_UI_DEFAULTS.width)

@@ -191,6 +191,8 @@ function MultiBot.InitializeRewardFrame()
 	end
 
 	local window = aceGUI:Create("Window")
+
+	MultiBot.RegisterScaledFrame(window.frame)
 	window:SetTitle(MultiBot.L("info.reward"))
 	window:SetLayout("Manual")
 	window:SetWidth(460)

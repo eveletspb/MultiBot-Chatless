@@ -1123,6 +1123,7 @@ function MultiBot.InitializeMainUI(tMultiBar)
     }
 
     local detector = CreateFrame("Frame", "MultiBotMainBarAutoHideDetector", UIParent)
+    MultiBot.RegisterScaledFrame(detector)
     detector:SetFrameStrata("TOOLTIP")
     detector:SetSize(MAINBAR_AUTOHIDE_HOTSPOT_SIZE, MAINBAR_AUTOHIDE_HOTSPOT_SIZE)
     detector:EnableMouse(true)

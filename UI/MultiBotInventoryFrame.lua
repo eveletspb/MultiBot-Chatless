@@ -1752,6 +1752,8 @@ local function ensureInventoryBuybackFrame()
     end
 
     local window = aceGUI:Create("Window")
+
+    MultiBot.RegisterScaledFrame(window.frame)
     window:SetTitle(MultiBot.L("inventory.buyback.title", "Buyback - %s"):format("-"))
     window:SetLayout("Manual")
     window:SetWidth(520)
@@ -2312,6 +2314,8 @@ function MultiBot.InitializeInventoryFrame()
     end
 
     local window = aceGUI:Create("Window")
+
+    MultiBot.RegisterScaledFrame(window.frame)
     window:SetTitle(getInventoryWindowTitle(nil))
     window:SetLayout("Manual")
     window:SetWidth(INVENTORY_WINDOW_DEFAULTS.width)

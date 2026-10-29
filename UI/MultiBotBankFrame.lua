@@ -61,6 +61,7 @@ end
 local function createWindow(name, title, width, height, pointX)
     if AceGUI then
         local widget = AceGUI:Create("Window")
+        MultiBot.RegisterScaledFrame(widget.frame)
         widget:SetTitle(title)
         widget:SetLayout("Fill")
         widget:SetWidth(width)
@@ -77,6 +78,7 @@ local function createWindow(name, title, width, height, pointX)
     end
 
     local frame = CreateFrame("Frame", name, UIParent, "BasicFrameTemplateWithInset")
+    MultiBot.RegisterScaledFrame(frame)
     frame:SetSize(width, height)
     frame:SetPoint("CENTER", UIParent, "CENTER", pointX or 0, 0)
     frame:SetFrameStrata("DIALOG")

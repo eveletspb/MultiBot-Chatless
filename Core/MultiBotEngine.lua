@@ -304,7 +304,8 @@ MultiBot.toPoint = function(pFrame)
 	    local xRight  = (type(getRight) == "function" and getRight(pFrame)) or 0
 	    local yBottom = (type(getBottom) == "function" and getBottom(pFrame)) or 0
 	    -- Offset vers BOTTOMRIGHT (négatif ou nul)
-	    local offX = xRight - uiRight
+	    local ratio = pFrame:GetEffectiveScale() / UIParent:GetEffectiveScale()
+	    local offX = xRight - uiRight / ratio
 	    local offY = yBottom
     -- Arrondi au plus proche pour éviter la dérive cumulée
     return math.floor(offX + 0.5), math.floor(offY + 0.5)

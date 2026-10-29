@@ -290,12 +290,33 @@ local function buildLegacyOptionsContent(panel)
   panel.chkMainBarAutoHide = chkMainBarAutoHide
   panel.mainBarAutoHideDelaySlider = mainBarAutoHideDelaySlider
 
+  local scaleSlider = CreateFrame("Slider", PANEL_NAME .. "_ui_scale_slider", scrollChild, "OptionsSliderTemplate")
+  scaleSlider:SetPoint("TOPLEFT", mainBarAutoHideDelaySlider, "BOTTOMLEFT", 0, -48)
+  scaleSlider:SetWidth(300)
+  scaleSlider:SetMinMaxValues(50, 150)
+  scaleSlider:SetValueStep(5)
+  if scaleSlider.SetObeyStepOnDrag then scaleSlider:SetObeyStepOnDrag(true) end
+  _G[scaleSlider:GetName() .. "Text"]:SetText(optL("options.layout.ui_scale"))
+  _G[scaleSlider:GetName() .. "Low"]:SetText("50%")
+  _G[scaleSlider:GetName() .. "High"]:SetText("150%")
+  local scaleValue = scrollChild:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+  scaleValue:SetPoint("TOP", scaleSlider, "BOTTOM", 0, 0)
+  local initialScale = round(MultiBot.GetUIScale() * 100, 5)
+  scaleSlider:SetValue(initialScale)
+  scaleValue:SetText(initialScale .. "%")
+  scaleSlider:SetScript("OnValueChanged", function(self, value)
+    value = round(value, 5)
+    self:SetValue(value)
+    scaleValue:SetText(value .. "%")
+    MultiBot.SetUIScale(value / 100)
+  end)
+
   local selectedOwnerKey = nil
   local refreshOwnerDropdown
 
   local exportBtn = CreateFrame("Button", nil, scrollChild, "UIPanelButtonTemplate")
   exportBtn:SetSize(110, 22)
-  exportBtn:SetPoint("TOPLEFT", mainBarAutoHideDelaySlider, "BOTTOMLEFT", -8, -24)
+  exportBtn:SetPoint("TOPLEFT", scaleSlider, "BOTTOMLEFT", -8, -24)
   exportBtn:SetText(optL("options.layout.export"))
   exportBtn:SetScript("OnClick", function()
     if MultiBot.SaveMainBarLayoutForCurrentPlayer then
@@ -620,6 +641,20 @@ function MultiBot.BuildOptionsPanel()
       local mainBarAutoHideEnabled = MultiBot.GetMainBarAutoHideEnabled and MultiBot.GetMainBarAutoHideEnabled() or false
       local mainBarAutoHideDelay = MultiBot.GetMainBarAutoHideDelay and MultiBot.GetMainBarAutoHideDelay() or 60
       local lootMasterUIEnabled = MultiBot.GetLootMasterUIEnabled and MultiBot.GetLootMasterUIEnabled() or true
+
+      local scaleSlider = AceGUI:Create("Slider")
+      local scaleLabel = optL("options.layout.ui_scale")
+      local scaleValue = round(MultiBot.GetUIScale() * 100, 5)
+      scaleSlider:SetSliderValues(50, 150, 5)
+      scaleSlider:SetValue(scaleValue)
+      scaleSlider:SetLabel(formatSliderLabel(scaleLabel, scaleValue .. "%"))
+      scaleSlider:SetFullWidth(true)
+      scaleSlider:SetCallback("OnValueChanged", function(widget, _, value)
+        value = round(value, 5)
+        widget:SetLabel(formatSliderLabel(scaleLabel, value .. "%"))
+        MultiBot.SetUIScale(value / 100)
+      end)
+      scroll:AddChild(scaleSlider)
 
       local chkMainBarMoveLocked = AceGUI:Create("CheckBox")
       chkMainBarMoveLocked:SetLabel(mainBarMoveLockLabel)

@@ -206,6 +206,8 @@ local function createAceWindow(name, title, width, height, x)
     end
 
     local widget = AceGUI:Create("Window")
+
+    MultiBot.RegisterScaledFrame(widget.frame)
     widget:SetTitle(title or "")
     widget:SetWidth(width)
     widget:SetHeight(height)

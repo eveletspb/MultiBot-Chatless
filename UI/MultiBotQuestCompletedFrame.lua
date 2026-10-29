@@ -108,6 +108,8 @@ function MultiBot.InitializeQuestCompletedFrame()
     assert(aceGUI, "AceGUI-3.0 is required for MB_BotQuestCompPopup")
 
     local window = aceGUI:Create("Window")
+
+    MultiBot.RegisterScaledFrame(window.frame)
     assert(window, "AceGUI-3.0 is required for MB_BotQuestCompPopup")
 
     window:SetTitle(MultiBot.L("tips.quests.complist"))

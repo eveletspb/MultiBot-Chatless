@@ -45,6 +45,7 @@ function ShowPrompt(title, onOk, defaultText, anchorFrame)
 
     if not PROMPT then
         local window = aceGUI:Create("Window")
+        MultiBot.RegisterScaledFrame(window.frame)
         if not window then
             return
         end

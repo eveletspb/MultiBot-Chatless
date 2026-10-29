@@ -168,6 +168,8 @@ local function initRaidusAceWindow()
     end
 
     local window = aceGUI:Create("Window")
+
+    MultiBot.RegisterScaledFrame(window.frame)
     if not window or not window.frame or not window.content then
         return
     end

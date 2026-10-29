@@ -589,6 +589,7 @@ local enUSValues = {
   ["tips.units.inviteRaid40"] = "40-Man Raid Group\n|cffffffffFills your Raid Group with up to 40 PlayerBots.\nPlayerBots are added from the selected Roster, ignoring any Class filters.|r\n\n|cffff0000Left-click to activate.|r\n|cff999999(Executed by: System)|r",
   ["tips.units.alliance"] = "Log In/Out All PlayerBots\n|cffffffffLog in/Out all PlayerBots you have access to.\nThis function will take time to populate the ButtonBars for each PlayerBot, depending on the number of PlayerBots total.\n\n|cffff0000Left-click to log in all PlayerBots|r\n|cff999999(Executed by: System)|r\n\n|cffff0000Right-click to log out all PlayerBots|r\n|cff999999(Executed by: System)|r",
   ["options.minimap.explainer"] = "Hide or show the MultiBot minimap button.",
+  ["options.layout.ui_scale"] = "MultiBot interface scale",
   ["options.layout.lock_mainbar"] = "Lock main bar movement",
   ["options.layout.lock_mainbar_desc"] = "Checked: Ctrl + right-click to move the bar. Unchecked: right-click is enough.",
   ["options.layout.disable_autocollapse"] = "Disable auto-collapse for bot bars",

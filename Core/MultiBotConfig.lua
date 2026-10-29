@@ -376,3 +376,56 @@ function MultiBot.SetMainBarAutoHideDelay(value)
   end
   return mainBar.autoHideDelay
 end
+-- Scale only MultiBot-owned frames; changes to protected bars wait until combat ends.
+local scaledFrames = setmetatable({}, { __mode = "k" })
+local scalePending = false
+
+function MultiBot.GetUIScale()
+  local ui = MultiBot.Store and MultiBot.Store.GetUIStore and MultiBot.Store.GetUIStore()
+  local value = ui and ui.scale
+  if type(value) ~= "number" or value ~= value then return 1 end
+  return math.max(0.5, math.min(1.5, value))
+end
+
+function MultiBot.ApplyUIScale()
+  if InCombatLockdown and InCombatLockdown() then
+    scalePending = true
+    return
+  end
+  scalePending = false
+  local scale = MultiBot.GetUIScale()
+  for frame in pairs(scaledFrames) do
+    frame:SetScale(scale)
+  end
+  if MultiBot.RefreshMainBarAutoHideState then MultiBot.RefreshMainBarAutoHideState() end
+end
+
+function MultiBot.RegisterScaledFrame(frame)
+  if not frame then return end
+  scaledFrames[frame] = true
+  if InCombatLockdown and InCombatLockdown() then
+    scalePending = true
+  else
+    frame:SetScale(MultiBot.GetUIScale())
+  end
+end
+
+function MultiBot.UnregisterScaledFrame(frame)
+  if not frame then return end
+  scaledFrames[frame] = nil
+  frame:SetScale(1)
+end
+
+function MultiBot.SetUIScale(value)
+  if type(value) ~= "number" or value ~= value then value = 1 end
+  local ui = MultiBot.Store.EnsureUIStore()
+  ui.scale = math.max(0.5, math.min(1.5, value))
+  MultiBot.ApplyUIScale()
+  return ui.scale
+end
+
+local scaleEventFrame = CreateFrame("Frame")
+scaleEventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+scaleEventFrame:SetScript("OnEvent", function()
+  if scalePending then MultiBot.ApplyUIScale() end
+end)

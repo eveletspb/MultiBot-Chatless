@@ -828,6 +828,7 @@ function HunterQuick:EnsureSearchFrame()
         end
 
         local preview = CreateFrame("PlayerModel", "MBHunterPetPreview", UIParent)
+        MultiBot.RegisterScaledFrame(preview)
         preview:SetSize(previewWidth, previewHeight)
         preview:SetBackdrop({
             bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
@@ -1256,6 +1257,8 @@ function HunterQuick:EnsureWindow()
     end
 
     local window = aceGUI:Create("Window")
+
+    MultiBot.RegisterScaledFrame(window.frame)
     window:SetTitle(WINDOW_TITLE)
     window:SetLayout("Manual")
     window:SetWidth((WINDOW_PADDING_X * 2) + ROW_WIDTH)

@@ -193,6 +193,8 @@ function MultiBot.InitializeQuestAllFrame()
     assert(aceGUI, "AceGUI-3.0 is required for MB_BotQuestAllPopup")
 
     local window = aceGUI:Create("Window")
+
+    MultiBot.RegisterScaledFrame(window.frame)
     assert(window, "AceGUI-3.0 is required for MB_BotQuestAllPopup")
 
     window:SetTitle(MultiBot.L("tips.quests.alllist"))

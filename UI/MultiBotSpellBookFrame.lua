@@ -397,6 +397,8 @@ function MultiBot.InitializeSpellBookFrame()
 	end
 
 	local window = aceGUI:Create("Window")
+
+	MultiBot.RegisterScaledFrame(window.frame)
 	window:SetTitle(SPELLBOOK)
 	window:SetWidth(360)
 	window:SetHeight(390)
