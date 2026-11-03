@@ -6,6 +6,42 @@ local MODE_BUTTON_ICON = "Interface\\AddOns\\MultiBot\\Icons\\mode_passive.blp"
 local MODE_FRAME_X = -172
 local MODE_FRAME_Y = 34
 
+local TANK_MODES = {
+    { name = "Attack", command = "@tank do attack my target", icon = "ability_warrior_shieldbash" },
+    { name = "Pull", command = "@tank pull", icon = "ability_hunter_markedfordeath" },
+    { name = "PullBack", command = "@tank pull back", icon = "ability_hunter_disengage" },
+}
+
+local function createTankerUI(tLeft)
+    local button = tLeft.addButton("Tanker", -238, 0, TANK_MODES[1].icon, "")
+    local menu = tLeft.addFrame("Tanker", -240, 34)
+    menu:Hide()
+
+    local function selectMode(mode)
+        button.setButton(mode.icon, MultiBot.L("tips.tanker." .. mode.name))
+        button.doLeft = function()
+            MultiBot.ActionToGroup(mode.command)
+        end
+        menu:Hide()
+        if MultiBot.RequestClickBlockerUpdate then
+            MultiBot.RequestClickBlockerUpdate(menu)
+        end
+    end
+
+    button.doRight = function()
+        MultiBot.ShowHideSwitch(menu)
+    end
+
+    selectMode(TANK_MODES[1])
+    for index, mode in ipairs(TANK_MODES) do
+        local option = menu.addButton(mode.name, 0, (index - 1) * 30, mode.icon, MultiBot.L("tips.tanker." .. mode.name))
+        option.doLeft = function()
+            selectMode(mode)
+            MultiBot.SetSavedMainBarValue("TankerMode", mode.name)
+        end
+    end
+end
+
 -- MB_P1A_MODE_BLOCKED_STATE_V1_START
 local function dispatchModeToggleAction(button, enableCommand, disableCommand)
     local wasEnabled = button.state == true
@@ -114,9 +150,7 @@ function MultiBot.InitializeLeftCoreUI(tLeft)
         MultiBot.BuildLootUI(tLeft)
     end
 
-    tLeft.addButton("Tanker", -238, 0, "ability_warrior_shieldbash", MultiBot.L("tips.tanker.master")).doLeft = function()
-        MultiBot.ActionToGroup("@tank do attack my target")
-    end
+    createTankerUI(tLeft)
 
     createModeUI(tLeft)
     createStayFollowUI(tLeft)
@@ -126,7 +160,7 @@ function MultiBot.InitializeLeftCoreUI(tLeft)
             { name = "BotRTI", id = "BotRTIActionButton", frameName = "BotRTIAction" },
             { name = "Disperse", frameName = "DisperseMenu" },
             { name = "Loot", frameName = "LootMenu" },
-            { name = "Tanker" },
+            { name = "Tanker", frameName = "Tanker" },
             { name = "Mode", frameName = "Mode" },
             { name = "Stay" },
             { name = "Follow" },

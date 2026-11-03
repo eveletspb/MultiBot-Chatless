@@ -204,6 +204,7 @@ local LAYOUT_MIGRATION_KEY = "layoutStateVersion"
 
 local MAINBAR_STATE_KEYS = {
 	"AttackButton",
+	"TankerMode",
 	"FleeButton",
 	"AutoRelease",
 	"NecroNet",
@@ -899,6 +900,11 @@ end
 local function restoreMainBarSavedStates()
 	restoreRightClickMode("AttackButton", "Attack", ATTACK_BUTTON_BINDINGS)
 	restoreRightClickMode("FleeButton", "Flee", FLEE_BUTTON_BINDINGS)
+	local tankMode = getSavedMainBarValue("TankerMode")
+	local tankOption = getMultiBarButton("Left", "Tanker", tankMode)
+	if tankOption and tankOption.doLeft then
+		tankOption.doLeft(tankOption)
+	end
 
 	restoreBinaryLeftToggle("AutoRelease", function()
 		return getMainBarButton("Release")

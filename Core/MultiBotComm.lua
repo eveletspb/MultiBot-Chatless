@@ -8319,6 +8319,8 @@ Comm.GROUP_ORDER_COMMANDS = Comm.GROUP_ORDER_COMMANDS or {
   ["@dps flee"] = true,
   ["@tank flee"] = true,
   ["@tank do attack my target"] = true,
+  ["@tank pull"] = true,
+  ["@tank pull back"] = true,
 }
 
 function Comm.IsGroupOrderCapable()

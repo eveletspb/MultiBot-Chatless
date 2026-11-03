@@ -632,6 +632,8 @@ local MB_GROUP_ORDER_COMMANDS = {
 	["@dps flee"] = true,
 	["@tank flee"] = true,
 	["@tank do attack my target"] = true,
+	["@tank pull"] = true,
+	["@tank pull back"] = true,
 }
 
 local function _mbNormalizeGroupOrder(action)
@@ -654,7 +656,7 @@ local function _mbRouteGroupOrder(action, commandScope, target, onComplete)
 		and type(comm.RunGroupOrderCommand) == "function"
 
 	if(not bridgeReady) then
-		if(MultiBot.allowLegacyChatFallback == true) then
+		if(MultiBot.allowLegacyChatFallback == true and command ~= "@tank pull" and command ~= "@tank pull back") then
 			return MB_GROUP_ORDER_ROUTE_LEGACY
 		end
 
