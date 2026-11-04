@@ -4,9 +4,8 @@ if type(register) ~= "function" then
 end
 
 local enUSValues = {
-  ["tips.tanker.Attack"] = "Tank: Attack\n|cffffffffTanks immediately attack your target.|r\n\n|cffff0000Left-click the shield to execute; right-click to choose a mode.\nLeft-click a menu option to save it without attacking.|r",
-  ["tips.tanker.Pull"] = "Tank: Pull\n|cffffffffTanks pull your target without returning to their starting position.|r\n\n|cffff0000Left-click the shield to execute; right-click to choose a mode.\nLeft-click a menu option to save it without attacking.|r",
-  ["tips.tanker.PullBack"] = "Tank: Pull back\n|cffffffffTanks pull your target and return to the position where they started the pull.|r\n\n|cffff0000Left-click the shield to execute; right-click to choose a mode.\nLeft-click a menu option to save it without attacking.|r",
+  ["tips.tanker.Attack"] = "Tank: Standard pull\n|cffffffffThe original shield action: tanks attack your selected target using the normal attack command.|r\n\n|cffff0000Left-click to execute; right-click to choose a mode.\nLeft-click a menu option to save it without executing.|r",
+  ["tips.tanker.PullBack"] = "Tank: Pull back (Playerbots)\n|cffffffffTanks pull your selected target with a ranged ability. If they had to approach, they return after aggro to the position where they were when you clicked.\nIn Stay mode, they only pull targets reachable from their position.|r\n\n|cffff0000Left-click to execute; right-click to choose a mode.\nLeft-click a menu option to save it without executing.|r",
   -- MB_LOOT_RULE_ITEM_I18N_V1_BEGIN
   ["loot.item.add"] = "Always loot: add item",
   ["loot.item.remove"] = "Always loot: remove item",

@@ -54,11 +54,14 @@ local left = newFrame()
 MultiBot.InitializeLeftCoreUI(left)
 local shield, menu = left.buttons.Tanker, left.frames.Tanker
 assert(not menu.shown and #sent == 0)
+assert(menu.buttons.Pull == nil, "Only the original shield and Pull back belong in this menu")
+assert(shield.texture == "ability_warrior_shieldbash")
+assert(menu.buttons.PullBack.texture ~= shield.texture)
 shield.doLeft()
 assert(sent[1]:find("~@tank do attack my target$"))
 MultiBot.bridge.groupOrderCommands = {}
 
-for _, mode in ipairs({ { "Pull", "pull" }, { "PullBack", "pull back" }, { "Attack", "do attack my target" } }) do
+for _, mode in ipairs({ { "PullBack", "pull back" }, { "Attack", "do attack my target" } }) do
     local before = #sent
     shield.doRight()
     assert(menu.shown)
@@ -66,6 +69,7 @@ for _, mode in ipairs({ { "Pull", "pull" }, { "PullBack", "pull back" }, { "Atta
     assert(not menu.shown and #sent == before, "Selecting a mode must not attack")
     assert(saved.TankerMode == mode[1])
     assert(shield.tip == "tips.tanker." .. mode[1])
+    assert(shield.texture == menu.buttons[mode[1]].texture)
     shield.doLeft()
     assert(#sent == before + 1)
     assert(sent[#sent]:find("^GROUP_ORDER~PARTY~"))
@@ -85,8 +89,8 @@ local before = #sent
 shield.doLeft()
 assert(#sent == before, "An outstanding identical order must not be duplicated")
 MultiBot.bridge.groupOrderCommands = {}
-assert(not MultiBot.Comm.RunGroupOrderCommand("PARTY", "", "@tank pull; follow"))
-assert(not MultiBot.Comm.RunGroupOrderCommand("BOT", "", "@tank pull"))
+assert(not MultiBot.Comm.RunGroupOrderCommand("PARTY", "", "@tank pull back; follow"))
+assert(not MultiBot.Comm.RunGroupOrderCommand("BOT", "", "@tank pull back"))
 
 MultiBot.bridge.connected = false
 MultiBot.allowLegacyChatFallback = true

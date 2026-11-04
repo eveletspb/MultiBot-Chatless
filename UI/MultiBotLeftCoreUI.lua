@@ -8,7 +8,6 @@ local MODE_FRAME_Y = 34
 
 local TANK_MODES = {
     { name = "Attack", command = "@tank do attack my target", icon = "ability_warrior_shieldbash" },
-    { name = "Pull", command = "@tank pull", icon = "ability_hunter_markedfordeath" },
     { name = "PullBack", command = "@tank pull back", icon = "ability_hunter_disengage" },
 }
 

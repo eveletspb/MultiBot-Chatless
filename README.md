@@ -78,7 +78,7 @@ The project is currently **bridge-first / mostly chatless** rather than fully ch
 | **Quests** | Bridge-backed quest list and structured bot quest abandon. Native quest sharing remains available. |
 | **Loot** | Structured loot profiles and exact persistent always-loot item add/remove. |
 | **Group tools** | Formation, Roll, Summon, Stay, Follow, Flee, tank attack, RTI, Pull Control and Disperse use structured bridge commands with aggregate status. |
-| **Tank shield** | Right-click to choose Attack, Pull, or Pull back; selecting a mode saves it per character without starting combat. Left-click executes the selected mode. Pull modes require an updated bridge and never fall back to chat. |
+| **Tank shield** | Right-click to choose the original shield action (standard tank attack) or native Playerbots Pull back, each with its own icon. Selecting a mode saves it per character without starting combat. Left-click executes it. Pull back uses a ranged ability and returns to the tank's starting position after approaching and tagging the target; Stay limits pulls to targets reachable without moving. It requires an updated bridge and never falls back to chat. |
 | **Material mail** | A confirmed action in “commands for all bots” sends supported resources from eligible online party/raid bots to the current character and prints one aggregate report. |
 | **Character information** | Bot skills, reputations, currencies/emblems, spellbook, stats and PvP stats. |
 | **Outfits** | Outfit listing and actions through the Bridge. |
