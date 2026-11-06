@@ -203,7 +203,7 @@ local function onInspectSlotClick(self, mouseButton)
     end
 
     if MultiBot.allowLegacyChatFallback == true then
-        SendChatMessage("ue " .. itemLink, "WHISPER", nil, botName)
+        MultiBot.SendChatMessage("ue " .. itemLink, "WHISPER", nil, botName)
         requestInventorySync(botName)
     end
 end

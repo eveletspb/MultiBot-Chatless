@@ -239,6 +239,13 @@ local function ensureBankFrame()
         return nil
     end
 
+    frame.frame:HookScript("OnHide", function()
+        if MultiBot.bridge then
+            MultiBot.bridge.bankActive = nil
+            MultiBot.bridge.guildBankActive = nil
+        end
+    end)
+
     local content = getFrameContent(frame)
     frame.status = createText(content, "GameFontHighlightSmall", "TOPLEFT", 18, -10)
     frame.rows = {}
@@ -364,6 +371,7 @@ local function ensureBankFrame()
     end)
 
     frame.setItems = function(self, botName, lines, errorReason, mode, guildBankRights)
+        if not self:IsShown() or self.mode ~= mode or self.botName ~= botName then return end
         self.botName = botName
         self.mode = mode or self.mode or "bank"
         self.gbankCanWithdraw = self.mode == "gbank" and type(guildBankRights) == "table" and guildBankRights.canWithdraw == true
@@ -385,7 +393,6 @@ local function ensureBankFrame()
         end
 
         self:render()
-        self:Show()
     end
 
     frame:Hide()
@@ -399,6 +406,10 @@ function MultiBot.OpenBotBank(botName)
         return false
     end
 
+    if MultiBot.bridge then
+        MultiBot.bridge.bankActive = nil
+        MultiBot.bridge.guildBankActive = nil
+    end
     local frame = ensureBankFrame()
     frame.botName = botName
     frame.mode = "bank"
@@ -425,6 +436,10 @@ function MultiBot.OpenBotGuildBank(botName)
         return false
     end
 
+    if MultiBot.bridge then
+        MultiBot.bridge.bankActive = nil
+        MultiBot.bridge.guildBankActive = nil
+    end
     local frame = ensureBankFrame()
     frame.botName = botName
     frame.mode = "gbank"

@@ -51,6 +51,7 @@ local CAPABILITY_STATE_FIELDS = {
   [OUTFIT_CAPABILITY] = "outfitCapable",
   [INVENTORY_CAPABILITY] = "inventoryCapable",
   [INVENTORY_EXACT_CAPABILITY] = "inventoryExactCapable",
+  ["ITEM_IDENTITY_V1"] = "inventoryItemIdentityCapable",
   [INVENTORY_ITEM_MOVE_CAPABILITY] = "inventoryItemMoveCapable",
   [INVENTORY_ITEM_TRADE_CAPABILITY] = "inventoryItemTradeCapable",
   [INVENTORY_ITEM_DEPOSIT_EXACT_CAPABILITY] = "inventoryItemDepositExactCapable",
@@ -3366,12 +3367,15 @@ end
 
 function Comm.IsInventoryItemMoveCapable()
   local state = ensureBridgeState()
-  return state.connected == true and state.inventoryExactCapable == true and state.inventoryItemMoveCapable == true
+  return state.inventoryItemIdentityCapable == true and state.connected == true and state.inventoryExactCapable == true and state.inventoryItemMoveCapable == true
 end
 
-function Comm.RunInventoryItemMove(name, srcBag, srcSlot, srcItemId, srcCount, dstBag, dstSlot, dstItemId, dstCount)
+function Comm.RunInventoryItemMove(name, srcBag, srcSlot, srcItemId, srcCount, dstBag, dstSlot, dstItemId, dstCount, srcGuid, dstGuid)
   local state = ensureBridgeState()
   name = trim(name)
+  srcGuid = parseBoundedInteger(tostring(srcGuid or ""), 1, 4294967295)
+  dstGuid = parseBoundedInteger(tostring(dstGuid or ""), 0, 4294967295)
+  if state.inventoryItemIdentityCapable ~= true or srcGuid == nil or dstGuid == nil then return false end
 
   srcBag = parseBoundedInteger(tostring(srcBag or ""), 0, 255)
   srcSlot = parseBoundedInteger(tostring(srcSlot or ""), 0, 255)
@@ -3417,6 +3421,7 @@ function Comm.RunInventoryItemMove(name, srcBag, srcSlot, srcItemId, srcCount, d
     "ITEM_MOVE", name, token,
     tostring(srcBag), tostring(srcSlot), tostring(srcItemId), tostring(srcCount),
     tostring(dstBag), tostring(dstSlot), tostring(dstItemId), tostring(dstCount),
+    tostring(srcGuid), tostring(dstGuid),
   }, "~")
 
   if not Comm.Send("RUN", payload) then
@@ -3446,12 +3451,14 @@ end
 
 function Comm.IsInventoryItemTradeCapable()
   local state = ensureBridgeState()
-  return state.connected == true and state.inventoryExactCapable == true and state.inventoryItemTradeCapable == true
+  return state.inventoryItemIdentityCapable == true and state.connected == true and state.inventoryExactCapable == true and state.inventoryItemTradeCapable == true
 end
 
-function Comm.RunInventoryItemTrade(name, srcBag, srcSlot, srcItemId, srcCount)
+function Comm.RunInventoryItemTrade(name, srcBag, srcSlot, srcItemId, srcCount, srcGuid)
   local state = ensureBridgeState()
   name = trim(name)
+  srcGuid = parseBoundedInteger(tostring(srcGuid or ""), 1, 4294967295)
+  if state.inventoryItemIdentityCapable ~= true or srcGuid == nil then return false end
 
   srcBag = parseBoundedInteger(tostring(srcBag or ""), 0, 255)
   srcSlot = parseBoundedInteger(tostring(srcSlot or ""), 0, 255)
@@ -3493,6 +3500,7 @@ function Comm.RunInventoryItemTrade(name, srcBag, srcSlot, srcItemId, srcCount)
   local payload = table.concat({
     "ITEM_TRADE", name, token,
     tostring(srcBag), tostring(srcSlot), tostring(srcItemId), tostring(srcCount),
+    tostring(srcGuid),
   }, "~")
 
   if not Comm.Send("RUN", payload) then
@@ -3522,14 +3530,17 @@ end
 
 function Comm.IsInventoryItemDepositExactCapable()
   local state = ensureBridgeState()
-  return state.connected == true
+  return state.inventoryItemIdentityCapable == true and state.connected == true
       and state.inventoryExactCapable == true
       and state.inventoryItemDepositExactCapable == true
 end
 
-function Comm.RunInventoryItemDepositExact(name, action, srcBag, srcSlot, srcItemId, srcCount)
+function Comm.RunInventoryItemDepositExact(name, action, srcBag, srcSlot, srcItemId, srcCount, srcGuid)
   local state = ensureBridgeState()
   name = trim(name)
+  srcGuid = parseBoundedInteger(tostring(srcGuid or ""), 1, 4294967295)
+  if state.inventoryItemIdentityCapable ~= true or srcGuid == nil then return false end
+
   action = string.upper(trim(action))
 
   srcBag = parseBoundedInteger(tostring(srcBag or ""), 0, 255)
@@ -3578,6 +3589,7 @@ function Comm.RunInventoryItemDepositExact(name, action, srcBag, srcSlot, srcIte
   local payload = table.concat({
     "ITEM_DEPOSIT_EXACT", name, token, action,
     tostring(srcBag), tostring(srcSlot), tostring(srcItemId), tostring(srcCount),
+    tostring(srcGuid),
   }, "~")
 
   if not Comm.Send("RUN", payload) then
@@ -3607,12 +3619,14 @@ end
 
 function Comm.IsInventoryItemEquipCapable()
   local state = ensureBridgeState()
-  return state.connected == true and state.inventoryExactCapable == true and state.inventoryItemEquipCapable == true
+  return state.inventoryItemIdentityCapable == true and state.connected == true and state.inventoryExactCapable == true and state.inventoryItemEquipCapable == true
 end
 
-function Comm.RunInventoryItemEquip(name, srcBag, srcSlot, srcItemId, srcCount)
+function Comm.RunInventoryItemEquip(name, srcBag, srcSlot, srcItemId, srcCount, srcGuid)
   local state = ensureBridgeState()
   name = trim(name)
+  srcGuid = parseBoundedInteger(tostring(srcGuid or ""), 1, 4294967295)
+  if state.inventoryItemIdentityCapable ~= true or srcGuid == nil then return false end
 
   srcBag = parseBoundedInteger(tostring(srcBag or ""), 0, 255)
   srcSlot = parseBoundedInteger(tostring(srcSlot or ""), 0, 255)
@@ -3643,6 +3657,7 @@ function Comm.RunInventoryItemEquip(name, srcBag, srcSlot, srcItemId, srcCount)
   local payload = table.concat({
     "ITEM_EQUIP", name, token,
     tostring(srcBag), tostring(srcSlot), tostring(srcItemId), tostring(srcCount),
+    tostring(srcGuid),
   }, "~")
 
   if not Comm.Send("RUN", payload) then
@@ -3733,12 +3748,14 @@ end
 
 function Comm.IsInventoryItemDestroyCapable()
   local state = ensureBridgeState()
-  return state.connected == true and state.inventoryExactCapable == true and state.inventoryItemDestroyCapable == true
+  return state.inventoryItemIdentityCapable == true and state.connected == true and state.inventoryExactCapable == true and state.inventoryItemDestroyCapable == true
 end
 
-function Comm.RunInventoryItemDestroy(name, srcBag, srcSlot, srcItemId, srcCount)
+function Comm.RunInventoryItemDestroy(name, srcBag, srcSlot, srcItemId, srcCount, srcGuid)
   local state = ensureBridgeState()
   name = trim(name)
+  srcGuid = parseBoundedInteger(tostring(srcGuid or ""), 1, 4294967295)
+  if state.inventoryItemIdentityCapable ~= true or srcGuid == nil then return false end
 
   srcBag = parseBoundedInteger(tostring(srcBag or ""), 0, 255)
   srcSlot = parseBoundedInteger(tostring(srcSlot or ""), 0, 255)
@@ -3769,6 +3786,7 @@ function Comm.RunInventoryItemDestroy(name, srcBag, srcSlot, srcItemId, srcCount
   local payload = table.concat({
     "ITEM_DESTROY", name, token,
     tostring(srcBag), tostring(srcSlot), tostring(srcItemId), tostring(srcCount),
+    tostring(srcGuid),
   }, "~")
 
   if not Comm.Send("RUN", payload) then
@@ -3797,12 +3815,14 @@ function Comm.RunInventoryItemDestroy(name, srcBag, srcSlot, srcItemId, srcCount
 end
 function Comm.IsInventoryItemUseCapable()
   local state = ensureBridgeState()
-  return state.connected == true and state.inventoryExactCapable == true and state.inventoryItemUseCapable == true
+  return state.inventoryItemIdentityCapable == true and state.connected == true and state.inventoryExactCapable == true and state.inventoryItemUseCapable == true
 end
 
-function Comm.RunInventoryItemUse(name, srcBag, srcSlot, srcItemId, srcCount)
+function Comm.RunInventoryItemUse(name, srcBag, srcSlot, srcItemId, srcCount, srcGuid)
   local state = ensureBridgeState()
   name = trim(name)
+  srcGuid = parseBoundedInteger(tostring(srcGuid or ""), 1, 4294967295)
+  if state.inventoryItemIdentityCapable ~= true or srcGuid == nil then return false end
 
   srcBag = parseBoundedInteger(tostring(srcBag or ""), 0, 255)
   srcSlot = parseBoundedInteger(tostring(srcSlot or ""), 0, 255)
@@ -3844,6 +3864,7 @@ function Comm.RunInventoryItemUse(name, srcBag, srcSlot, srcItemId, srcCount)
   local payload = table.concat({
     "ITEM_USE", name, token,
     tostring(srcBag), tostring(srcSlot), tostring(srcItemId), tostring(srcCount),
+    tostring(srcGuid),
   }, "~")
 
   if not Comm.Send("RUN", payload) then
@@ -3874,12 +3895,14 @@ end
 -- MB_ITEM_SELL_SINGLE_V1_COMM_BEGIN
 function Comm.IsInventoryItemSellCapable()
   local state = ensureBridgeState()
-  return state.connected == true and state.inventoryExactCapable == true and state.inventoryItemSellCapable == true
+  return state.inventoryItemIdentityCapable == true and state.connected == true and state.inventoryExactCapable == true and state.inventoryItemSellCapable == true
 end
 
-function Comm.RunInventoryItemSell(name, srcBag, srcSlot, srcItemId, srcCount)
+function Comm.RunInventoryItemSell(name, srcBag, srcSlot, srcItemId, srcCount, srcGuid)
   local state = ensureBridgeState()
   name = trim(name)
+  srcGuid = parseBoundedInteger(tostring(srcGuid or ""), 1, 4294967295)
+  if state.inventoryItemIdentityCapable ~= true or srcGuid == nil then return false end
 
   srcBag = parseBoundedInteger(tostring(srcBag or ""), 0, 255)
   srcSlot = parseBoundedInteger(tostring(srcSlot or ""), 0, 255)
@@ -3921,6 +3944,7 @@ function Comm.RunInventoryItemSell(name, srcBag, srcSlot, srcItemId, srcCount)
   local payload = table.concat({
     "ITEM_SELL", name, token,
     tostring(srcBag), tostring(srcSlot), tostring(srcItemId), tostring(srcCount),
+    tostring(srcGuid),
   }, "~")
 
   if not Comm.Send("RUN", payload) then
@@ -4098,6 +4122,15 @@ function Comm.RequestBank(name)
     return false
   end
 
+  safeDelay(5, function()
+    local bridge = ensureBridgeState()
+    local active = bridge.bankActive
+    if not active or active.token ~= token then return end
+    bridge.bankActive = nil
+    if MultiBot.OnBridgeBankItems then
+      MultiBot.OnBridgeBankItems(active.botName, {}, "TIMEOUT", token)
+    end
+  end)
   return token
 end
 
@@ -4124,6 +4157,15 @@ function Comm.RequestGuildBank(name)
     return false
   end
 
+  safeDelay(5, function()
+    local bridge = ensureBridgeState()
+    local active = bridge.guildBankActive
+    if not active or active.token ~= token then return end
+    bridge.guildBankActive = nil
+    if MultiBot.OnBridgeGuildBankItems then
+      MultiBot.OnBridgeGuildBankItems(active.botName, {}, "TIMEOUT", token)
+    end
+  end)
   return token
 end
 
@@ -5148,6 +5190,19 @@ function Comm.RunGroupRoll(itemLink, callback)
   return token
 end
 
+function Comm.FinishInventoryItemAction(token, result, reason, moved)
+  local state = ensureBridgeState()
+  local command = state.inventoryItemActions[token]
+  if not command then return false end
+  state.inventoryItemActions[token] = nil
+  command.result, command.reason, command.moved = result, reason, moved or 0
+  if MultiBot.OnBridgeInventoryItemActionResult then
+    MultiBot.OnBridgeInventoryItemActionResult(
+      command.botName, command.action, command.itemId, result, reason, moved or 0, command)
+  end
+  return true
+end
+
 function Comm.RunInventoryItemAction(name, action, itemId, count)
   local state = ensureBridgeState()
   name = trim(name)
@@ -5178,6 +5233,12 @@ function Comm.RunInventoryItemAction(name, action, itemId, count)
     return false
   end
 
+  if countTableEntries(state.inventoryItemActions) >= 32 then return false end
+  for _, pending in pairs(state.inventoryItemActions) do
+    if pending.botNameKey == string.lower(name) and pending.action == action
+        and pending.itemId == itemId and pending.count == count then return false end
+  end
+
   state.inventoryItemActionSeq = (tonumber(state.inventoryItemActionSeq) or 0) + 1
   local token = tostring(math.floor(safeNow() * 1000)) .. "-item-" .. tostring(state.inventoryItemActionSeq)
   state.inventoryItemActions[token] = {
@@ -5194,6 +5255,9 @@ function Comm.RunInventoryItemAction(name, action, itemId, count)
     return false
   end
 
+  safeDelay(5, function()
+    Comm.FinishInventoryItemAction(token, "ERR", "TIMEOUT", 0)
+  end)
   return token
 end
 
@@ -5401,6 +5465,11 @@ function Comm.MarkDisconnected(reason)
 
   state.bankActive = nil
   state.guildBankActive = nil
+  local pendingItemTokens = {}
+  for token in pairs(state.inventoryItemActions) do pendingItemTokens[#pendingItemTokens + 1] = token end
+  for _, token in ipairs(pendingItemTokens) do
+    Comm.FinishInventoryItemAction(token, "ERR", "DISCONNECTED", 0)
+  end
   state.inventoryItemActions = {}
 
   local pendingTalentApplyTokens = {}
@@ -8996,6 +9065,22 @@ function Comm.HandleAddonMessage(prefix, message, distribution, sender)
     return true
   end
 
+  if opcode == "INV_ITEM_IDENTITY" then
+    local fields = splitFields(payload or "")
+    local active = getActiveInventoryExactRequest(fields[1] or "", fields[2] or "")
+    if active then
+      local key = tostring(fields[3]) .. ":" .. tostring(fields[4])
+      local item = active.itemsByPosition[key]
+      local guid = parseBoundedInteger(fields[5], 1, 4294967295)
+      if #fields ~= 5 or not active.begun or not item or item.guid or not guid then
+        active.integrityError = "BAD_ITEM_IDENTITY"
+      else
+        item.guid = guid
+      end
+    end
+    return true
+  end
+
   if opcode == "INV_ITEM_LOC" then
     local fields = splitFields(payload or "")
     state.connected = true
@@ -9077,6 +9162,11 @@ function Comm.HandleAddonMessage(prefix, message, distribution, sender)
     state.connected = true
 
     local active = getActiveInventoryExactRequest(botName, token)
+    if active and state.inventoryItemIdentityCapable then
+      for _, item in ipairs(active.items) do
+        if not item.guid then active.integrityError = "MISSING_ITEM_IDENTITY"; break end
+      end
+    end
     if active and active.begun and not active.integrityError then
       local snapshot = {
         botName = active.botName,
@@ -9759,20 +9849,10 @@ function Comm.HandleAddonMessage(prefix, message, distribution, sender)
     state.connected = true
     state.lastError = nil
 
-    local command = state.inventoryItemActions and state.inventoryItemActions[token] or nil
-    if command then
-      command.botName = botName ~= "" and botName or command.botName
-      command.action = action ~= "" and action or command.action
-      command.itemId = itemId > 0 and itemId or command.itemId
-      command.result = result
-      command.reason = reason
-      command.moved = moved
-
-      if MultiBot.OnBridgeInventoryItemActionResult then
-        MultiBot.OnBridgeInventoryItemActionResult(command.botName, command.action, command.itemId, result, reason, moved, command)
-      end
-
-      state.inventoryItemActions[token] = nil
+    local command = state.inventoryItemActions[token]
+    if command and command.botNameKey == string.lower(botName) and command.action == action
+        and (command.itemId == itemId or command.action == "OPEN_ITEMS") then
+      Comm.FinishInventoryItemAction(token, result, reason, moved)
     end
 
     debugPrint("ADDON:RX", "INVENTORY_ITEM_ACTION", botName, action, itemId, result, reason, moved)
@@ -10666,6 +10746,8 @@ function Comm.HandleAddonMessage(prefix, message, distribution, sender)
           return true
         elseif Comm.HandleGroupMaterialMailProtocolError(requestType, token, reason, state) then
           return true
+        elseif requestType == "ITEM_ACTION" and state.inventoryItemActions[token] then
+          Comm.FinishInventoryItemAction(token, "ERR", reason, 0)
         elseif requestType == "LOOT_RULE_ITEM" and state.lootRuleItemCommands[token] then
           local pending = state.lootRuleItemCommands[token]
           state.lootRuleItemCommands[token] = nil

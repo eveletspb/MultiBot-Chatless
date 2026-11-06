@@ -785,7 +785,7 @@ function HunterQuick:ShowPrompt(formatString, targetName, title)
 
     ShowPrompt(title or MultiBot.L("info.hunterpeteditentervalue"), function(text)
         if text and text ~= "" and targetName then
-            SendChatMessage(string.format(formatString, text), "WHISPER", nil, targetName)
+            MultiBot.SendChatMessage(string.format(formatString, text), "WHISPER", nil, targetName)
         end
     end, MultiBot.L("info.hunterpetentersomething"))
 end
@@ -971,7 +971,7 @@ function HunterQuick:EnsureSearchFrame()
                 row.text:SetText(string.format("|cffffd200%-24s|r |cff888888[%s]|r", data.name, getFamilyLabel(data.family)))
                 row:SetScript("OnClick", function()
                     if host.TargetName then
-                        SendChatMessage(("tame id %d"):format(data.id), "WHISPER", nil, host.TargetName)
+                        MultiBot.SendChatMessage(("tame id %d"):format(data.id), "WHISPER", nil, host.TargetName)
                     end
                     host:Hide()
                 end)
@@ -1079,7 +1079,7 @@ function HunterQuick:ShowFamilyFrame(targetName)
         row:SetScript("OnClick", function()
             local currentTargetName = frame.TargetName
             if currentTargetName then
-                SendChatMessage(("tame family %s"):format(data.eng), "WHISPER", nil, currentTargetName)
+                MultiBot.SendChatMessage(("tame family %s"):format(data.eng), "WHISPER", nil, currentTargetName)
             end
             frame:Hide()
         end)
@@ -1103,7 +1103,7 @@ function HunterQuick:BuildUtilityAction(row, definition, index)
             self:ShowFamilyFrame(row.owner)
             row.utilsStrip:Hide()
         elseif definition.action == "direct" then
-            SendChatMessage(definition.command, "WHISPER", nil, row.owner)
+            MultiBot.SendChatMessage(definition.command, "WHISPER", nil, row.owner)
             row.utilsStrip:Hide()
         else
             local searchFrame = self:EnsureSearchFrame()
@@ -1132,7 +1132,7 @@ function HunterQuick:BuildStanceAction(row, definition, index)
             return
         end
 
-        SendChatMessage("pet " .. definition.key, "WHISPER", nil, row.owner)
+        MultiBot.SendChatMessage("pet " .. definition.key, "WHISPER", nil, row.owner)
         if definition.persistent then
             self:ApplyStanceVisual(row, definition.key)
             self:SetSavedStance(row.owner, definition.key)

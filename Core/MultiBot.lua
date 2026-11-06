@@ -1,4 +1,5 @@
 MultiBot = CreateFrame("Frame", nil, UIParent)
+MultiBot.SendChatMessage = SendChatMessage
 
 local function ensureValue(root, key, defaultValue)
   if root[key] == nil then
@@ -2510,7 +2511,7 @@ function MultiBot.BindUnitToggleHandlers(button, options)
       return
     end
 
-    SendChatMessage(".playerbot bot remove " .. unitButton.name, "SAY")
+    MultiBot.SendChatMessage(".playerbot bot remove " .. unitButton.name, "SAY")
     if MultiBot.SetBridgeBotOnlineState and unitButton.bridge ~= nil then
       MultiBot.SetBridgeBotOnlineState(unitButton, false)
     else
@@ -2566,7 +2567,7 @@ function MultiBot.BindUnitToggleHandlers(button, options)
       return
     end
 
-    SendChatMessage(".playerbot bot add " .. unitButton.name, "SAY")
+    MultiBot.SendChatMessage(".playerbot bot add " .. unitButton.name, "SAY")
     unitButton.setEnable()
 
     if (unitButton._mbFavoritePlaceholder
@@ -2642,7 +2643,7 @@ local function BindBridgeSelfBotHandler(button)
     end
 
     if MultiBot.allowLegacyChatFallback == true then
-      SendChatMessage(".playerbot bot self", "SAY")
+      MultiBot.SendChatMessage(".playerbot bot self", "SAY")
       MultiBot.OnOffSwitch(pButton)
     end
   end
@@ -4348,7 +4349,7 @@ MultiBot.AddClassToTarget = function(classCmd, gender)
     MultiBot.BeginAddClassAutoGroup(classCmd)
   end
 
-  SendChatMessage(msg, "SAY")
+  MultiBot.SendChatMessage(msg, "SAY")
 
   if MultiBot.RequestBridgeRosterRefresh then
     MultiBot.RequestBridgeRosterRefresh()
@@ -4357,7 +4358,7 @@ end
 
 -- Init Wrapper
 function MultiBot.InitAuto(name)
-  SendChatMessage(".playerbot bot init=auto " .. name, "SAY")
+  MultiBot.SendChatMessage(".playerbot bot init=auto " .. name, "SAY")
 end
 
 -- Localization payload moved to AceLocale files.

@@ -1037,7 +1037,7 @@ function OutfitUI:RequestList(botName)
         return false
     end
 
-    SendChatMessage("outfit ?", "WHISPER", nil, botName)
+    MultiBot.SendChatMessage("outfit ?", "WHISPER", nil, botName)
     return true
 end
 
@@ -1256,7 +1256,7 @@ function OutfitUI:RunCommand(commandSuffix, statusText, refreshDelay, persistDel
     end
 
     -- print("OutfitUI DEBUG: sending -> 'outfit " .. tostring(commandSuffix) .. "' to " .. tostring(botName))
-    SendChatMessage("outfit " .. commandSuffix, "WHISPER", nil, botName)
+    MultiBot.SendChatMessage("outfit " .. commandSuffix, "WHISPER", nil, botName)
     self:SetStatus(statusText)
 
     local commandToken = nil
@@ -1268,10 +1268,10 @@ function OutfitUI:RunCommand(commandSuffix, statusText, refreshDelay, persistDel
         local flushBotName = botName
         if MultiBot.TimerAfter then
             MultiBot.TimerAfter(persistDelay, function()
-                SendChatMessage("nc +chat", "WHISPER", nil, flushBotName)
+                MultiBot.SendChatMessage("nc +chat", "WHISPER", nil, flushBotName)
             end)
         else
-            SendChatMessage("nc +chat", "WHISPER", nil, flushBotName)
+            MultiBot.SendChatMessage("nc +chat", "WHISPER", nil, flushBotName)
         end
     end
 

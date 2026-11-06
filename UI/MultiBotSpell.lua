@@ -67,7 +67,7 @@ local function scheduleSpellbookFooterRequest(pButton, pSender)
 		if(tCurrentState.hasRequestedFooter) then return end
 
 		tCurrentState.hasRequestedFooter = true
-		SendChatMessage("stats", "WHISPER", nil, pSender)
+		MultiBot.SendChatMessage("stats", "WHISPER", nil, pSender)
 	end
 
 	MultiBot.TimerAfter(SPELLBOOK_FOOTER_REQUEST_DELAY, requestFooter)

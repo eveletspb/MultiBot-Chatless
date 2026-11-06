@@ -63,8 +63,8 @@ function MultiBot.Throttle_Init()
     end
   end)
 
-  -- Surcharge globale (enfile tous les envois)
-  SendChatMessage = function(msg, chatType, language, target)
+  -- Queue only MultiBot messages; leave the global chat API unchanged.
+  MultiBot.SendChatMessage = function(msg, chatType, language, target)
     queue[#queue+1] = { args = pack(msg, chatType, language, target) }
     perfCount("throttle.enqueued")
     perfCount("throttle.queue.size_total", #queue)

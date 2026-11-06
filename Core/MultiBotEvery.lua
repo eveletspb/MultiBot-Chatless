@@ -40,7 +40,7 @@ if not StaticPopupDialogs["MULTIBOT_AUTOGEAR_CONFIRM"] then
         if data.selfAction == true then
           runEverySelfAction("AUTOGEAR", "")
         else
-          SendChatMessage("autogear", "WHISPER", nil, data.target)
+          MultiBot.SendChatMessage("autogear", "WHISPER", nil, data.target)
         end
       end
     end,
@@ -351,7 +351,7 @@ MultiBot.addEvery = function(pFrame, pCombat, pNormal)
             if isSelfBot then
                 runEverySelfAction("MAINTENANCE", "")
             else
-                SendChatMessage("maintenance", "WHISPER", nil, b.getName())
+                MultiBot.SendChatMessage("maintenance", "WHISPER", nil, b.getName())
             end
         end
         },
@@ -569,7 +569,7 @@ MultiBot.addEvery = function(pFrame, pCombat, pNormal)
 
 			if(MultiBot.allowLegacyChatFallback == true) then
 				tUnits.buttons[MultiBot.spellbook.name].waitFor = "SPELLBOOK"
-				SendChatMessage("spells", "WHISPER", nil, pButton.getName())
+				MultiBot.SendChatMessage("spells", "WHISPER", nil, pButton.getName())
 			else
 				tUnits.buttons[MultiBot.spellbook.name].waitFor = ""
 			end
@@ -582,9 +582,9 @@ MultiBot.addEvery = function(pFrame, pCombat, pNormal)
 			pButton.setDisable()
 			MultiBot.talent:Hide()
 		elseif(UnitLevel(MultiBot.toUnit(pButton.getName())) < 10) then
-			SendChatMessage(MultiBot.L("info.talent.Level"), "SAY")
+			MultiBot.SendChatMessage(MultiBot.L("info.talent.Level"), "SAY")
 		elseif(CheckInteractDistance(MultiBot.toUnit(pButton.getName()), 1) == nil) then
-			SendChatMessage(MultiBot.L("info.talent.OutOfRange"), "SAY")
+			MultiBot.SendChatMessage(MultiBot.L("info.talent.OutOfRange"), "SAY")
 		else
 			MultiBot.talent:Hide()
 			MultiBot.talent.doClear()
@@ -642,7 +642,7 @@ local function sendCommonCombatStrategy(pButton, command)
 		return MultiBot.Comm.RunCombatCommand("BOT", botName, command)
 	end
 
-	SendChatMessage(command, "WHISPER", nil, botName)
+	MultiBot.SendChatMessage(command, "WHISPER", nil, botName)
 	return true
 end
 

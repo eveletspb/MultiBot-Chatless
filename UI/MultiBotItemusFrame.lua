@@ -1006,7 +1006,7 @@ function MultiBot.InitializeItemusFrame()
             clearItemButtonPool(self)
             updateScrollCanvasHeight(self, 1)
             resetItemusScroll(self)
-            --SendChatMessage(MultiBot.L("info.combination"), "SAY")
+            --MultiBot.SendChatMessage(MultiBot.L("info.combination"), "SAY")
             return
         end
 

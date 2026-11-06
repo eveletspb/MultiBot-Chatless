@@ -114,9 +114,9 @@ local function handleQuestClick(questID, button)
 
                 if not bridgeHandled and MultiBot.allowLegacyChatFallback == true then
                     if GetNumRaidMembers() > 0 then
-                        SendChatMessage("drop " .. questLink, "RAID")
+                        MultiBot.SendChatMessage("drop " .. questLink, "RAID")
                     elseif GetNumPartyMembers() > 0 then
-                        SendChatMessage("drop " .. questLink, "PARTY")
+                        MultiBot.SendChatMessage("drop " .. questLink, "PARTY")
                     end
                 end
 

@@ -91,7 +91,7 @@ local function ReconnectExistingGroupBots(reason)
 		for i = 1, GetNumRaidMembers() do
 			local raidName = UnitName("raid" .. i)
 			if raidName and raidName ~= "" and raidName ~= playerName then
-				SendChatMessage(".playerbot bot add " .. raidName, "SAY")
+				MultiBot.SendChatMessage(".playerbot bot add " .. raidName, "SAY")
 				sent = sent + 1
 			end
 		end
@@ -99,7 +99,7 @@ local function ReconnectExistingGroupBots(reason)
 		for i = 1, GetNumPartyMembers() do
 			local partyName = UnitName("party" .. i)
 			if partyName and partyName ~= "" and partyName ~= playerName then
-				SendChatMessage(".playerbot bot add " .. partyName, "SAY")
+				MultiBot.SendChatMessage(".playerbot bot add " .. partyName, "SAY")
 				sent = sent + 1
 			end
 		end
@@ -164,8 +164,8 @@ function MultiBot.HandleOnUpdate(pElapsed)
 		end
 
 		if(MultiBot.isMember(tTable[MultiBot.timer.invite.index]) == false) then
-			SendChatMessage(MultiBot.doReplace(MultiBot.L("info.inviting"), "NAME", tTable[MultiBot.timer.invite.index]), "SAY")
-			SendChatMessage(".playerbot bot add " .. tTable[MultiBot.timer.invite.index], "SAY")
+			MultiBot.SendChatMessage(MultiBot.doReplace(MultiBot.L("info.inviting"), "NAME", tTable[MultiBot.timer.invite.index]), "SAY")
+			MultiBot.SendChatMessage(".playerbot bot add " .. tTable[MultiBot.timer.invite.index], "SAY")
 			MultiBot.timer.invite.needs = MultiBot.timer.invite.needs - 1
 		end
 
@@ -181,7 +181,7 @@ function MultiBot.HandleOnUpdate(pElapsed)
 		end
 
 		if(MultiBot.timer.sort.index == nil) then
-			SendChatMessage("Ready for Raid now.", "SAY")
+			MultiBot.SendChatMessage("Ready for Raid now.", "SAY")
 			MultiBot.timer.sort.elapsed = 0
 			MultiBot.timer.sort.index = 1
 			MultiBot.timer.sort.needs = 0
@@ -971,7 +971,7 @@ local function bindUnitToggleHandlers(button, options)
 			return
 		end
 
-		SendChatMessage(".playerbot bot remove " .. pButton.name, "SAY")
+		MultiBot.SendChatMessage(".playerbot bot remove " .. pButton.name, "SAY")
 		hideButtonUnitFrame(pButton)
 		pButton.setDisable()
 	end
@@ -982,7 +982,7 @@ local function bindUnitToggleHandlers(button, options)
 				MultiBot.ShowHideSwitch(pButton.parent.frames[pButton.name])
 			end
 		else
-			SendChatMessage(".playerbot bot add " .. pButton.name, "SAY")
+			MultiBot.SendChatMessage(".playerbot bot add " .. pButton.name, "SAY")
 			pButton.setEnable()
 		end
 	end
@@ -1497,7 +1497,7 @@ function MultiBot.HandleMultiBotEvent(event, ...)
             ReconnectExistingGroupBots("entering-world")
         end
 
-        SendChatMessage(".account", "SAY")
+        MultiBot.SendChatMessage(".account", "SAY")
 
         if(MultiBot.init == nil) then
             MultiBot.init = true
@@ -1528,7 +1528,7 @@ function MultiBot.HandleMultiBotEvent(event, ...)
                     return
                 end
 
-                SendChatMessage(".playerbot bot list", "SAY")
+                MultiBot.SendChatMessage(".playerbot bot list", "SAY")
             end)
         end
 
@@ -1556,26 +1556,26 @@ function MultiBot.HandleMultiBotEvent(event, ...)
 
 		if(MultiBot.isInside(arg1, "Possible strategies")) then
 			local tStrategies = MultiBot.doSplit(arg1, ", ")
-			SendChatMessage("=== STRATEGIES ===", "SAY")
-			for i = 1, #tStrategies do SendChatMessage(i .. " : " .. tStrategies[i], "SAY") end
+			MultiBot.SendChatMessage("=== STRATEGIES ===", "SAY")
+			for i = 1, #tStrategies do MultiBot.SendChatMessage(i .. " : " .. tStrategies[i], "SAY") end
 			return
 		end
 
 		if(MultiBot.isInside(arg1, "Whisper any of")) then
 			local tCommands = MultiBot.doSplit(arg1, ", ")
-			SendChatMessage("=== WHISPER-COMMANDS ===", "SAY")
-			for i = 1, #tCommands do SendChatMessage(i .. " : " .. tCommands[i], "SAY") end
+			MultiBot.SendChatMessage("=== WHISPER-COMMANDS ===", "SAY")
+			for i = 1, #tCommands do MultiBot.SendChatMessage(i .. " : " .. tCommands[i], "SAY") end
 			return
 		end
 
 		if(MultiBot.auto.release == true) then
 			if(MultiBot.isInside(arg1, "已经死亡")) then
-				SendChatMessage("release", "WHISPER", nil, MultiBot.doReplace(arg1, "已经死亡。", ""))
+				MultiBot.SendChatMessage("release", "WHISPER", nil, MultiBot.doReplace(arg1, "已经死亡。", ""))
 				return
 			end
 
 			if(MultiBot.isInside(arg1, "ist tot", "has dies", "has died")) then
-				SendChatMessage("release", "WHISPER", nil, MultiBot.doSplit(arg1, " ")[1])
+				MultiBot.SendChatMessage("release", "WHISPER", nil, MultiBot.doSplit(arg1, " ")[1])
 				return
 			end
 		end
@@ -1631,7 +1631,7 @@ function MultiBot.HandleMultiBotEvent(event, ...)
 			tPlayer.name = tName
 
 			tPlayer.doLeft = function(pButton)
-				SendChatMessage(".playerbot bot self", "SAY")
+				MultiBot.SendChatMessage(".playerbot bot self", "SAY")
 				MultiBot.OnOffSwitch(pButton)
 			end
 
@@ -1744,7 +1744,7 @@ function MultiBot.HandleMultiBotEvent(event, ...)
 			if(GetNumRaidMembers() > 4) then
 				for i = 1, GetNumRaidMembers() do
 					local raidName = UnitName("raid" .. i)
-					SendChatMessage(".playerbot bot add " .. raidName, "SAY")
+					MultiBot.SendChatMessage(".playerbot bot add " .. raidName, "SAY")
 				end
 
 				return
@@ -1755,7 +1755,7 @@ function MultiBot.HandleMultiBotEvent(event, ...)
 			if(GetNumPartyMembers() > 0) then
 				for i = 1, GetNumPartyMembers() do
 					local partyName = UnitName("party" .. i)
-					SendChatMessage(".playerbot bot add " .. partyName, "SAY")
+					MultiBot.SendChatMessage(".playerbot bot add " .. partyName, "SAY")
 				end
 
 				return
@@ -1784,7 +1784,7 @@ function MultiBot.HandleMultiBotEvent(event, ...)
 
                if LegacyChatFallbackEnabled() then
                   tButton.waitFor = "CO"
-                  SendChatMessage("co ?", "WHISPER", nil, tName)
+                  MultiBot.SendChatMessage("co ?", "WHISPER", nil, tName)
                else
                   tButton.waitFor = ""
                end
@@ -1804,7 +1804,7 @@ function MultiBot.HandleMultiBotEvent(event, ...)
 			if(tButton == nil) then return end
 
 			if(MultiBot.isInside(arg1, "not your bot")) then
-				SendChatMessage("leave", "WHISPER", nil, tName)
+				MultiBot.SendChatMessage("leave", "WHISPER", nil, tName)
 			end
 
 			MultiBot.doRemove(MultiBot.index.classes.actives[tButton.class], tButton.name)
@@ -1821,7 +1821,7 @@ function MultiBot.HandleMultiBotEvent(event, ...)
 			if(tButton == nil) then return end
 			if LegacyChatFallbackEnabled() then
 				tButton.waitFor = "CO"
-				SendChatMessage("co ?", "WHISPER", nil, tName)
+				MultiBot.SendChatMessage("co ?", "WHISPER", nil, tName)
 			else
 				tButton.waitFor = ""
 			end
@@ -1991,7 +1991,7 @@ function MultiBot.HandleMultiBotEvent(event, ...)
 		if(arg1 == "stats" and arg2 ~= UnitName("player")) then
 			local tXP = math.floor(100.0 / UnitXPMax("player") * UnitXP("player"))
 			local tMana = math.floor(100.0 / UnitManaMax("player") * UnitMana("player"))
-			SendChatMessage("StatsOfPlayer " .. tXP .. " " .. tMana, "WHISPER", nil, arg2)
+			MultiBot.SendChatMessage("StatsOfPlayer " .. tXP .. " " .. tMana, "WHISPER", nil, arg2)
 		end
 
 		-- REQUIREMENT --
@@ -2071,7 +2071,7 @@ function MultiBot.HandleMultiBotEvent(event, ...)
 
 			if LegacyChatFallbackEnabled() then
 				tButton.waitFor = "CO"
-				SendChatMessage("co ?", "WHISPER", nil, arg2)
+				MultiBot.SendChatMessage("co ?", "WHISPER", nil, arg2)
 			else
 				tButton.waitFor = ""
 			end
@@ -2083,12 +2083,12 @@ function MultiBot.HandleMultiBotEvent(event, ...)
 		end
 
 		if(MultiBot.isInside(arg1, "reset to default") and tButton.waitFor == "CO") then
-			SendChatMessage("co ,?", "WHISPER", nil, arg2)
+			MultiBot.SendChatMessage("co ,?", "WHISPER", nil, arg2)
 			return
 		end
 
 		if(MultiBot.isInside(arg1, "reset to default") and tButton.waitFor == "NC") then
-			SendChatMessage("nc ,?", "WHISPER", nil, arg2)
+			MultiBot.SendChatMessage("nc ,?", "WHISPER", nil, arg2)
 			return
 		end
 
@@ -2113,7 +2113,7 @@ function MultiBot.HandleMultiBotEvent(event, ...)
 				end
 			end
 
-			SendChatMessage("who", "WHISPER", nil, arg2)
+			MultiBot.SendChatMessage("who", "WHISPER", nil, arg2)
 			return
 		end
 
@@ -2132,7 +2132,7 @@ function MultiBot.HandleMultiBotEvent(event, ...)
 					and tExistingFrame._mbLegacyCombat == tCombat
 					and tExistingFrame._mbLegacyNormal == tNormal then
 				tButton.setEnable()
-				SendChatMessage("ss ?", "WHISPER", nil, arg2)
+				MultiBot.SendChatMessage("ss ?", "WHISPER", nil, arg2)
 				return
 			end
 
@@ -2156,14 +2156,14 @@ function MultiBot.HandleMultiBotEvent(event, ...)
 
 			tButton.setEnable()
 			if tWasShown and tFrame.Show then tFrame:Show() end
-			SendChatMessage("ss ?", "WHISPER", nil, arg2)
+			MultiBot.SendChatMessage("ss ?", "WHISPER", nil, arg2)
 			return
 		end
 
 		if(tButton.waitFor == "CO" and MultiBot.isInside(arg1, "Strategies: ")) then
 			tButton.waitFor = "NC"
 			tButton.combat = string.sub(arg1, 13)
-			SendChatMessage("nc ?", "WHISPER", nil, arg2)
+			MultiBot.SendChatMessage("nc ?", "WHISPER", nil, arg2)
 			return
 		end
 
@@ -2206,7 +2206,7 @@ function MultiBot.HandleMultiBotEvent(event, ...)
 				tItems.index = 0
 			end
 			tButton.waitFor = "ITEM"
-			SendChatMessage("stats", "WHISPER", nil, arg2)
+			MultiBot.SendChatMessage("stats", "WHISPER", nil, arg2)
 			return
 		end
 

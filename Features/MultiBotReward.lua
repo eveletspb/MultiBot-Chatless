@@ -149,7 +149,7 @@ local function applyRewardChoice(pButton)
 	if(pButton == nil or pButton.link == nil) then return end
 
 	pButton.parent:Hide()
-	SendChatMessage("r " .. pButton.link, "WHISPER", nil, pButton.getName())
+	MultiBot.SendChatMessage("r " .. pButton.link, "WHISPER", nil, pButton.getName())
 
 	local tClickedBot = MultiBot.getBot(pButton.getName())
 	if(tClickedBot ~= nil) then tClickedBot.rewarded = true end

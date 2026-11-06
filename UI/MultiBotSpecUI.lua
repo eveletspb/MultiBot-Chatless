@@ -483,7 +483,7 @@ function Spec:RequestList(bot, wrapper)
     -- explicitly enabled legacy fallback.
     if not bridgeApplyCapable and MultiBot.allowLegacyChatFallback == true then
         suppressNextTalentUsageLines(bot)
-        SendChatMessage("talents", "WHISPER", nil, bot)
+        MultiBot.SendChatMessage("talents", "WHISPER", nil, bot)
     end
 
     if bridgeApplyCapable and comm and comm.RequestTalentSpecList then
@@ -498,7 +498,7 @@ function Spec:RequestList(bot, wrapper)
 
     if MultiBot.allowLegacyChatFallback == true then
         armSpecListTimeout(self.pending)
-        SendChatMessage("talents spec list", "WHISPER", nil, bot)
+        MultiBot.SendChatMessage("talents spec list", "WHISPER", nil, bot)
         return true
     end
 
@@ -963,11 +963,11 @@ local function refreshSpecTalentInspection(bot, className)
 end
 
 local function runLegacySpecSelection(bot, slot, spec, className)
-    SendChatMessage("stopcasting", "WHISPER", nil, bot)
-    SendChatMessage("talents switch " .. slot, "WHISPER", nil, bot)
+    MultiBot.SendChatMessage("stopcasting", "WHISPER", nil, bot)
+    MultiBot.SendChatMessage("talents switch " .. slot, "WHISPER", nil, bot)
 
     MultiBot.TimerAfter(0.4, function()
-        SendChatMessage("talents spec " .. spec, "WHISPER", nil, bot)
+        MultiBot.SendChatMessage("talents spec " .. spec, "WHISPER", nil, bot)
     end)
 
     Spec.pendingRefresh = bot

@@ -885,7 +885,7 @@ local btnLoad = styleRaidusActionButton(MultiBot.raidus.wowButton("Load", -762 +
 btnLoad.doLeft = function(pButton)
 	local layoutData = getRaidusLayoutValue(MultiBot.raidus.save)
 	if(layoutData == nil or layoutData == "") then
-		SendChatMessage(MultiBot.L("info.nothing"), "SAY")
+		MultiBot.SendChatMessage(MultiBot.L("info.nothing"), "SAY")
 		return
 	end
 
@@ -1070,7 +1070,7 @@ end
 local btnSave = styleRaidusActionButton(MultiBot.raidus.wowButton("Save", -597 + RAIDUS_ACTION_SHIFT_X, RAIDUS_ACTION_BAR_Y, 80, 20, 12), false)
 btnSave.doLeft = function(pButton)
 	setRaidusLayoutValue(MultiBot.raidus.save, serializeRaidusLayoutFromFrames())
-	SendChatMessage("I wrote it down.", "SAY")
+	MultiBot.SendChatMessage("I wrote it down.", "SAY")
 end
 
 local function collectRaidusApplyInviteList(raidByName, selfName)
@@ -1115,7 +1115,7 @@ local function removeRaidusMembersOutsideLayout(raidByMembers, raidByName, selfN
             if MultiBot.isMember(raidMemberName) then
                 UninviteUnit(raidMemberName)
             end
-            SendChatMessage(".playerbot bot remove " .. raidMemberName, "SAY")
+            MultiBot.SendChatMessage(".playerbot bot remove " .. raidMemberName, "SAY")
         end
     end
 end
@@ -1125,19 +1125,19 @@ local function announceRaidusApplySelection(selectedCount, inviteList, usedLayou
     local selectedList = inviteCount > 0 and table.concat(inviteList, ", ") or ""
 
     if usedLayoutFallback then
-        SendChatMessage("Raidus Apply: using layout list, selected=" .. selectedCount .. " toInvite=" .. inviteCount, "SAY")
+        MultiBot.SendChatMessage("Raidus Apply: using layout list, selected=" .. selectedCount .. " toInvite=" .. inviteCount, "SAY")
     else
-        SendChatMessage("Raidus Apply: selected=" .. selectedCount .. " toInvite=" .. inviteCount, "SAY")
+        MultiBot.SendChatMessage("Raidus Apply: selected=" .. selectedCount .. " toInvite=" .. inviteCount, "SAY")
     end
 
     if selectedList ~= "" then
-        SendChatMessage("Raidus Apply list: " .. selectedList, "SAY")
+        MultiBot.SendChatMessage("Raidus Apply list: " .. selectedList, "SAY")
     end
 end
 
 local function startRaidusApplyInviteOrSort(inviteCount)
     if inviteCount > 0 then
-        SendChatMessage(MultiBot.L("info.starting"), "SAY")
+        MultiBot.SendChatMessage(MultiBot.L("info.starting"), "SAY")
         MultiBot.timer.invite.roster = "raidus"
         MultiBot.timer.invite.needs = inviteCount
         MultiBot.timer.invite.index = 1
@@ -1468,11 +1468,11 @@ MultiBot.raidus.setRaidus = function()
                 if MultiBotRaidusIsBotGrouped(name) then
                     -- Bot déjà dans le groupe/raid :
                     -- on laisse le core playerbots gérer leave + logout
-                    SendChatMessage(".playerbot bot remove " .. name, "SAY")
+                    MultiBot.SendChatMessage(".playerbot bot remove " .. name, "SAY")
                 else
                     -- Bot pas dans le groupe/raid :
                     -- login + invite via playerbots
-                    SendChatMessage(".playerbot bot add " .. name, "SAY")
+                    MultiBot.SendChatMessage(".playerbot bot add " .. name, "SAY")
                 end
             end
         end)
@@ -1567,8 +1567,8 @@ MultiBot.raidus.getRaidTarget = function()
 		end
 	end)
 
-	if(tBots) then return SendChatMessage("There is no Bot in the Raid", "SAY") end
-	if(tUser) then return SendChatMessage("Place me in a Raidus raid group slot before clicking Apply.", "SAY") end
+	if(tBots) then return MultiBot.SendChatMessage("There is no Bot in the Raid", "SAY") end
+	if(tUser) then return MultiBot.SendChatMessage("Place me in a Raidus raid group slot before clicking Apply.", "SAY") end
 	return tRaidByIndex, tRaidByName
 end
 
@@ -1804,7 +1804,7 @@ MultiBot.raidus.autoBalanceRaid = function(mode)
     local botCount = #bots
 
     if botCount == 0 then
-        SendChatMessage("Auto balance raid : No bots selectd", "SAY")
+        MultiBot.SendChatMessage("Auto balance raid : No bots selectd", "SAY")
         return
     end
 

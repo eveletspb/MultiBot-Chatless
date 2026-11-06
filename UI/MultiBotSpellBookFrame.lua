@@ -346,7 +346,7 @@ local function createSpellbookContent(window)
 	tOverlay.buttons[">"] = nextButton
 
 	local function onSpellSlotLeftClick(pButton)
-		SendChatMessage("cast " .. pButton.spell, "WHISPER", nil, MultiBot.spellbook.name)
+		MultiBot.SendChatMessage("cast " .. pButton.spell, "WHISPER", nil, MultiBot.spellbook.name)
 	end
 
 	local function onSpellSlotRightClick(pButton)

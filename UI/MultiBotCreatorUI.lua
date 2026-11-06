@@ -86,18 +86,18 @@ end
 
 local function initializeTarget()
     if not UnitExists("target") or not UnitIsPlayer("target") then
-        SendChatMessage(MultiBot.L("info.target"), "SAY")
+        MultiBot.SendChatMessage(MultiBot.L("info.target"), "SAY")
         return
     end
 
     local name = UnitName("target")
     if MultiBot.isRoster("players", name) then
-        SendChatMessage(MultiBot.L("info.players"), "SAY")
+        MultiBot.SendChatMessage(MultiBot.L("info.players"), "SAY")
         return
     end
 
     if MultiBot.isRoster("members", name) then
-        SendChatMessage(MultiBot.L("info.members"), "SAY")
+        MultiBot.SendChatMessage(MultiBot.L("info.members"), "SAY")
         return
     end
 
@@ -110,9 +110,9 @@ local function initializeGroup()
             local name = UnitName(unitPrefix .. index)
             if name and name ~= UnitName("player") then
                 if MultiBot.isRoster("players", name) then
-                    SendChatMessage(MultiBot.doReplace(MultiBot.L("info.player"), "NAME", name), "SAY")
+                    MultiBot.SendChatMessage(MultiBot.doReplace(MultiBot.L("info.player"), "NAME", name), "SAY")
                 elseif MultiBot.isRoster("members", name) then
-                    SendChatMessage(MultiBot.doReplace(MultiBot.L("info.member"), "NAME", name), "SAY")
+                    MultiBot.SendChatMessage(MultiBot.doReplace(MultiBot.L("info.member"), "NAME", name), "SAY")
                 else
                     MultiBot.InitAuto(name)
                 end
@@ -130,7 +130,7 @@ local function initializeGroup()
         return
     end
 
-    SendChatMessage(MultiBot.L("info.group"), "SAY")
+    MultiBot.SendChatMessage(MultiBot.L("info.group"), "SAY")
 end
 
 function MultiBot.InitializeCreatorUI(tLeft)
@@ -162,7 +162,7 @@ function MultiBot.InitializeCreatorUI(tLeft)
                 return
             end
 
-            SendChatMessage(MultiBot.L("tips.creator.notarget"), "SAY")
+            MultiBot.SendChatMessage(MultiBot.L("tips.creator.notarget"), "SAY")
         end
 
     local initButton = creatorFrame.addButton("Init", 0, 330, "inv_misc_enggizmos_27", MultiBot.L("tips.creator.init"))

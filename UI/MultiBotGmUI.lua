@@ -107,7 +107,7 @@ local function addMemoryGemButton(portalFrame, definition)
 
     gem.doRight = function(button)
         if not button.state then
-            SendChatMessage(MultiBot.L("info.itlocation"), "SAY")
+            MultiBot.SendChatMessage(MultiBot.L("info.itlocation"), "SAY")
             return
         end
 
@@ -120,18 +120,18 @@ local function addMemoryGemButton(portalFrame, definition)
         player.waitFor = player.waitFor or ""
 
         if player.waitFor ~= "" then
-            SendChatMessage(MultiBot.L("info.saving"), "SAY")
+            MultiBot.SendChatMessage(MultiBot.L("info.saving"), "SAY")
             return
         end
 
         if button.state then
-            SendChatMessage(".go xyz " .. button.goX .. " " .. button.goY .. " " .. button.goZ .. " " .. button.goMap, "SAY")
+            MultiBot.SendChatMessage(".go xyz " .. button.goX .. " " .. button.goY .. " " .. button.goZ .. " " .. button.goMap, "SAY")
             return
         end
 
         player.memory = button
         player.waitFor = "COORDS"
-        SendChatMessage(".gps", "SAY")
+        MultiBot.SendChatMessage(".gps", "SAY")
     end
 
     return gem
@@ -139,7 +139,7 @@ end
 
 function MultiBot.ShowDeleteSVPrompt()
     if MultiBot.GM == false then
-        SendChatMessage(MultiBot.L("info.rights"), "SAY")
+        MultiBot.SendChatMessage(MultiBot.L("info.rights"), "SAY")
         return
     end
 

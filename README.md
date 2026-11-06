@@ -58,6 +58,21 @@ The project is currently **bridge-first / mostly chatless** rather than fully ch
 
 ---
 
+## Audit compatibility update (2026-11-06)
+
+Update the server bridge together with this addon. Exact bag actions now require
+`ITEM_IDENTITY_V1` and carry the unique item GUID, including the original item in
+a destroy confirmation and both items in a drag/drop. Older bridges do not enable
+these actions. Bank responses cannot reopen a closed window. Item actions recover
+on timeout/error, and the chat throttle queues only MultiBot's own messages.
+
+Run the regressions from this directory:
+
+```sh
+luajit tests/audit_regressions.lua
+luajit tests/tank_pull_modes.lua
+```
+
 # Main Features
 
 | Area | Current behavior |

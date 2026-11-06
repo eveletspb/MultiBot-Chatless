@@ -98,7 +98,7 @@ function Shared.SendDropQuest(botName, entry)
     end
 
     if SendChatMessage then
-        SendChatMessage(command, "WHISPER", nil, botName)
+        MultiBot.SendChatMessage(command, "WHISPER", nil, botName)
         return true
     end
 

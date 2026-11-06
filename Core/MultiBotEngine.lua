@@ -41,12 +41,12 @@ MultiBot.doSlash = function(pCommand, pArguments)
 		end
 	end
 
-	SendChatMessage(MultiBot.L("info.command"), "SAY")
+	MultiBot.SendChatMessage(MultiBot.L("info.command"), "SAY")
 	return false
 end
 
 MultiBot.doDot = function(pCommand, oArguments)
-	SendChatMessage(pCommand .. " " .. oArguments)
+	MultiBot.SendChatMessage(pCommand .. " " .. oArguments)
 	return false
 end
 
@@ -55,14 +55,14 @@ MultiBot.doDotWithTarget = function(pCommand, oArguments)
 
 	if(tName ~= nil and tName ~= "Unknown Entity") then
 		if(oArguments ~= nil)
-		then SendChatMessage(pCommand .. " " .. tName .. " " .. oArguments)
-		else SendChatMessage(pCommand .. " " .. tName)
+		then MultiBot.SendChatMessage(pCommand .. " " .. tName .. " " .. oArguments)
+		else MultiBot.SendChatMessage(pCommand .. " " .. tName)
 		end
 
 		return true
 	end
 
-	SendChatMessage(MultiBot.L("info.target"), "SAY")
+	MultiBot.SendChatMessage(MultiBot.L("info.target"), "SAY")
 	return false
 end
 
@@ -205,7 +205,7 @@ MultiBot.isTarget = function()
 		return true
 	end
 
-	SendChatMessage(MultiBot.L("info.target"), "SAY")
+	MultiBot.SendChatMessage(MultiBot.L("info.target"), "SAY")
 	return false
 end
 
@@ -453,10 +453,10 @@ MultiBot.SpellToMacro = function(pName, pSpell, pTexture)
 	local _, tAmount = GetNumMacros()
 
 	if(pSpell == nil or pSpell == 0) then
-		return SendChatMessage(MultiBot.L("info.spell"), "SAY")
+		return MultiBot.SendChatMessage(MultiBot.L("info.spell"), "SAY")
 	end
 	if(tAmount == 18) then
-		return SendChatMessage(MultiBot.L("info.macro"), "SAY")
+		return MultiBot.SendChatMessage(MultiBot.L("info.macro"), "SAY")
 	end
 
 	local tMacro = string.sub(pName, 1, 14) .. tAmount
@@ -860,14 +860,14 @@ MultiBot.ActionToTarget = function(pAction, oTarget, onComplete)
 			return false, "blocked"
 		end
 
-		SendChatMessage(pAction, "WHISPER", nil, tName)
+		MultiBot.SendChatMessage(pAction, "WHISPER", nil, tName)
 		if(orderRoute == MB_GROUP_ORDER_ROUTE_LEGACY and type(onComplete) == "function") then
 			onComplete({ status = "legacy", command = pAction, target = tName })
 		end
 		return true, "chat"
 	end
 
-	SendChatMessage(MultiBot.L("info.target"), "SAY")
+	MultiBot.SendChatMessage(MultiBot.L("info.target"), "SAY")
 	return false
 end
 
@@ -886,7 +886,7 @@ MultiBot.ActionToTargetOrGroup = function(pAction)
 		if(route == MB_STRATEGY_ROUTE_BLOCKED) then
 			return false
 		end
-		SendChatMessage(pAction, "RAID")
+		MultiBot.SendChatMessage(pAction, "RAID")
 		return true
 	end
 
@@ -898,11 +898,11 @@ MultiBot.ActionToTargetOrGroup = function(pAction)
 		if(route == MB_STRATEGY_ROUTE_BLOCKED) then
 			return false
 		end
-		SendChatMessage(pAction, "PARTY")
+		MultiBot.SendChatMessage(pAction, "PARTY")
 		return true
 	end
 
-	SendChatMessage(MultiBot.L("info.neither"), "SAY")
+	MultiBot.SendChatMessage(MultiBot.L("info.neither"), "SAY")
 	return false
 end
 
@@ -923,7 +923,7 @@ MultiBot.ActionToGroup = function(pAction, onComplete)
 		if(route == MB_STRATEGY_ROUTE_BLOCKED) then
 			return false
 		end
-		SendChatMessage(pAction, "RAID")
+		MultiBot.SendChatMessage(pAction, "RAID")
 		if(orderRoute == MB_GROUP_ORDER_ROUTE_LEGACY and type(onComplete) == "function") then
 			onComplete({ status = "legacy", command = pAction })
 		end
@@ -946,7 +946,7 @@ MultiBot.ActionToGroup = function(pAction, onComplete)
 		if(route == MB_STRATEGY_ROUTE_BLOCKED) then
 			return false
 		end
-		SendChatMessage(pAction, "PARTY")
+		MultiBot.SendChatMessage(pAction, "PARTY")
 		if(orderRoute == MB_GROUP_ORDER_ROUTE_LEGACY and type(onComplete) == "function") then
 			onComplete({ status = "legacy", command = pAction })
 		end
@@ -970,7 +970,7 @@ MultiBot.ActionToGroup = function(pAction, onComplete)
 		return false, "blocked"
 	end
 
-	SendChatMessage(MultiBot.L("info.group"), "SAY")
+	MultiBot.SendChatMessage(MultiBot.L("info.group"), "SAY")
 	return false
 end
 -- MB_P1_STRATEGY_NO_SILENT_CHAT_FALLBACK_V1_END
@@ -1382,7 +1382,7 @@ MultiBot.OnOffActionToTarget = function(pButton, pOn, pOff, pTarget)
 		if(unitButton) then unitButton.waitFor = string.upper(mutationScope) end
 
 		-- Seul le mode legacy explicitement autorise atteint ce transport chat.
-		SendChatMessage(action, "WHISPER", nil, pTarget)
+		MultiBot.SendChatMessage(action, "WHISPER", nil, pTarget)
 		if(wasEnabled) then
 			pButton.setDisable()
 			return false
@@ -2564,7 +2564,7 @@ MultiBot.SellAllBots = function(pCommand)
 		if type(btn) == "table" then
 			local botName = btn.name or (btn.getName and btn.getName()) or key
 			if botName and botName ~= "" then
-				SendChatMessage(pCommand, "WHISPER", nil, botName)
+				MultiBot.SendChatMessage(pCommand, "WHISPER", nil, botName)
 				count = count + 1
 			end
 		end
@@ -2602,7 +2602,7 @@ MultiBot.MaintenanceAllBots = function()
 		if type(btn) == "table" then
 			local botName = btn.name or (btn.getName and btn.getName()) or key
 			if botName and botName ~= "" then
-				SendChatMessage("maintenance", "WHISPER", nil, botName)
+				MultiBot.SendChatMessage("maintenance", "WHISPER", nil, botName)
 				count = count + 1
 			end
 		end
@@ -2917,7 +2917,7 @@ MultiBot.RequestInventoryRefresh = function(botName, delay, options)
 		end
 
 		waitButton.waitFor = "INVENTORY"
-		SendChatMessage("items", "WHISPER", nil, botName)
+		MultiBot.SendChatMessage("items", "WHISPER", nil, botName)
 		if bridge then
 			bridge.lastError = nil
 		end

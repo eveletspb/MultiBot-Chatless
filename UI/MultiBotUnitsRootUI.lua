@@ -1894,7 +1894,7 @@ local function addRosterMemberButton(member, socialRoster)
 
             -- Preserve the pre-existing fallback only when structured
             -- lifecycle capabilities are unavailable.
-            SendChatMessage(".playerbot bot remove " .. button.name, "SAY")
+            MultiBot.SendChatMessage(".playerbot bot remove " .. button.name, "SAY")
             if MultiBot.SetBridgeBotOnlineState and button.bridge ~= nil then
                 MultiBot.SetBridgeBotOnlineState(button, false)
             else
@@ -1928,7 +1928,7 @@ local function addRosterMemberButton(member, socialRoster)
             return
         end
         button._mbSocialForceCollapsed = true
-        SendChatMessage(".playerbot bot remove " .. button.name, "SAY")
+        MultiBot.SendChatMessage(".playerbot bot remove " .. button.name, "SAY")
         if button.parent.frames[button.name] ~= nil then
             button.parent.frames[button.name]:Hide()
         end
@@ -1962,7 +1962,7 @@ local function addRosterMemberButton(member, socialRoster)
                 return
             end
 
-            SendChatMessage(".playerbot bot add " .. button.name, "SAY")
+            MultiBot.SendChatMessage(".playerbot bot add " .. button.name, "SAY")
             if button.setEnable then
                 button.setEnable()
             end
@@ -2004,7 +2004,7 @@ local function addRosterMemberButton(member, socialRoster)
             return
         end
 
-        SendChatMessage(".playerbot bot add " .. button.name, "SAY")
+        MultiBot.SendChatMessage(".playerbot bot add " .. button.name, "SAY")
         button.setEnable()
     end
 end
@@ -2252,7 +2252,7 @@ refreshStrategiesForActiveBots = function(unitsButton)
             button.waitFor = "CO"
         end
 
-        SendChatMessage("co ?", "WHISPER", nil, name)
+        MultiBot.SendChatMessage("co ?", "WHISPER", nil, name)
     end
 
     if scopedToDisplayedUnits then
@@ -2369,10 +2369,10 @@ local function createFactionBanner(unitsFrame)
     local button = allianceFrame.addButton("FactionBanner", 0, 0, bannerIcon, MultiBot.L("tips.units.alliance"))
     button:doShow()
     button.doRight = function()
-        SendChatMessage(".playerbot bot remove *", "SAY")
+        MultiBot.SendChatMessage(".playerbot bot remove *", "SAY")
     end
     button.doLeft = function()
-        SendChatMessage(".playerbot bot add *", "SAY")
+        MultiBot.SendChatMessage(".playerbot bot add *", "SAY")
     end
 
     return allianceFrame, button
@@ -2509,7 +2509,7 @@ local function createPvpStatsControls(controlFrame)
             return
         end
 
-        SendChatMessage("pvp stats", "WHISPER", nil, bot)
+        MultiBot.SendChatMessage("pvp stats", "WHISPER", nil, bot)
         showPvpFrame()
     end
 
@@ -2523,7 +2523,7 @@ local function createPvpStatsControls(controlFrame)
             return
         end
 
-        SendChatMessage("pvp stats", "PARTY")
+        MultiBot.SendChatMessage("pvp stats", "PARTY")
         showPvpFrame()
     end
 
@@ -2537,7 +2537,7 @@ local function createPvpStatsControls(controlFrame)
             return
         end
 
-        SendChatMessage("pvp stats", "RAID")
+        MultiBot.SendChatMessage("pvp stats", "RAID")
         showPvpFrame()
     end
 end
@@ -2784,7 +2784,7 @@ local function createInviteControls(controlFrame)
         MultiBot.timer.invite.needs = #MultiBot.index[MultiBot.timer.invite.roster]
         MultiBot.timer.invite.index = 1
         MultiBot.auto.invite = true
-        SendChatMessage(MultiBot.L("info.starting"), "SAY")
+        MultiBot.SendChatMessage(MultiBot.L("info.starting"), "SAY")
     end
 
     inviteButton.doLeft = function(button)
@@ -2801,7 +2801,7 @@ local function createInviteControls(controlFrame)
         inviteFrame.addButton(definition.name, definition.x, 0, definition.icon, MultiBot.L(definition.tip))
             .doLeft = function(button)
                 if MultiBot.auto.invite then
-                    SendChatMessage(MultiBot.L("info.wait"), "SAY")
+                    MultiBot.SendChatMessage(MultiBot.L("info.wait"), "SAY")
                     return
                 end
 
@@ -2812,7 +2812,7 @@ local function createInviteControls(controlFrame)
                 MultiBot.timer.invite.index = 1
                 MultiBot.auto.invite = true
                 button.parent:Hide()
-                SendChatMessage(MultiBot.L("info.starting"), "SAY")
+                MultiBot.SendChatMessage(MultiBot.L("info.starting"), "SAY")
             end
     end
 end

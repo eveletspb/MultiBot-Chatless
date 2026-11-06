@@ -481,7 +481,7 @@ function MultiBot.InitializeQuestsMenu(tRight)
                 UIErrorsFrame:AddMessage(MultiBot.L("tips.quests.gobselectboterror"), 1, 0.2, 0.2, 1)
                 return
             end
-            SendChatMessage("u " .. normalized, "WHISPER", nil, bot)
+            MultiBot.SendChatMessage("u " .. normalized, "WHISPER", nil, bot)
         end)
     end
     gobSearchButton.doLeft = function()

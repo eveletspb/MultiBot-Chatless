@@ -292,6 +292,7 @@ local function buildInventoryDestroyRequest(button, botName)
         srcSlot = tonumber(item.slot),
         srcItemId = tonumber(item.id or 0) or 0,
         srcCount = count,
+        srcGuid = item.guid,
         exactLocation = item.exactLocation == true,
         link = item.link,
         tip = tostring(button.tip or item.link or ""),
@@ -323,7 +324,7 @@ local function runLegacyInventoryItemDestroy(request)
         return false
     end
 
-    SendChatMessage("destroy " .. request.tip, "WHISPER", nil, request.botName)
+    MultiBot.SendChatMessage("destroy " .. request.tip, "WHISPER", nil, request.botName)
     requestInventoryPostActionRefresh(request.botName, 0.45, 1.20)
     return true
 end
@@ -362,7 +363,7 @@ local function bindInventoryDestroyConfirm(button, botName)
 end
 
 local function sendInventoryFeedback(key, fallback)
-    SendChatMessage(inventoryItemL(key, fallback), "SAY")
+    MultiBot.SendChatMessage(inventoryItemL(key, fallback), "SAY")
 end
 
 local function addInventorySystemMessage(message)
@@ -425,7 +426,7 @@ local function sendInventoryItemCommand(command, button, botName, options)
         return false
     end
 
-    SendChatMessage(command .. " " .. button.tip, "WHISPER", nil, botName)
+    MultiBot.SendChatMessage(command .. " " .. button.tip, "WHISPER", nil, botName)
 
     if options.hideButton and button.Hide then
         button:Hide()
@@ -499,7 +500,7 @@ local function runBridgeInventoryItemDepositExact(action, button, botName)
     end
 
     local token = MultiBot.Comm.RunInventoryItemDepositExact(
-        botName, action, srcBag, srcSlot, srcItemId, srcCount
+        botName, action, srcBag, srcSlot, srcItemId, srcCount, item.guid
     )
     return token and true or false
 end
@@ -528,7 +529,7 @@ local function runBridgeInventoryItemSell(button, botName)
     end
 
     local token = MultiBot.Comm.RunInventoryItemSell(
-        botName, srcBag, srcSlot, itemId, count
+        botName, srcBag, srcSlot, itemId, count, item.guid
     )
     return token and true or false
 end
@@ -557,7 +558,7 @@ local function runBridgeInventoryItemTrade(button, botName)
     end
 
     local token = MultiBot.Comm.RunInventoryItemTrade(
-        botName, srcBag, srcSlot, itemId, count
+        botName, srcBag, srcSlot, itemId, count, item.guid
     )
     return token and true or false
 end
@@ -585,7 +586,7 @@ local function runBridgeInventoryItemUse(button, botName)
     end
 
     local token = MultiBot.Comm.RunInventoryItemUse(
-        botName, srcBag, srcSlot, itemId, count
+        botName, srcBag, srcSlot, itemId, count, item.guid
     )
     return token and true or false
 end
@@ -612,7 +613,7 @@ local function runBridgeInventoryItemEquip(button, botName)
         return false
     end
 
-    local token = MultiBot.Comm.RunInventoryItemEquip(botName, srcBag, srcSlot, itemId, count)
+    local token = MultiBot.Comm.RunInventoryItemEquip(botName, srcBag, srcSlot, itemId, count, item.guid)
     return token and true or false
 end
 
@@ -634,7 +635,7 @@ runBridgeInventoryItemDestroy = function(request)
     end
 
     local token = MultiBot.Comm.RunInventoryItemDestroy(
-        request.botName, srcBag, srcSlot, itemId, count
+        request.botName, srcBag, srcSlot, itemId, count, request.srcGuid
     )
     return token and true or false
 end
@@ -1115,6 +1116,7 @@ local function cloneInventoryExactItem(sourceItem, location)
     item._serverCount = count
     item.bag = tonumber(location.bag or 0) or 0
     item.slot = tonumber(location.slot or 0) or 0
+    item.guid = location.guid
     item.soulbound = location.soulbound == true
     item.exactLocation = true
 

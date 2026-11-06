@@ -247,7 +247,7 @@ end
 
 local function toggleMasters(button)
     if MultiBot.GM == false then
-        SendChatMessage(MultiBot.L("info.rights"), "SAY")
+        MultiBot.SendChatMessage(MultiBot.L("info.rights"), "SAY")
         return
     end
 
@@ -331,7 +331,7 @@ local function toggleStats(button)
     end
 
     if GetNumRaidMembers() > 0 then
-        SendChatMessage(MultiBot.L("info.stats"), "SAY")
+        MultiBot.SendChatMessage(MultiBot.L("info.stats"), "SAY")
         return
     end
 
@@ -796,9 +796,9 @@ local function sendMainCombatStrategy(scope, strategyName, enabled)
 	end
 
 	if scope == "ALL" then
-		SendChatMessage(command, GetNumRaidMembers() > 0 and "RAID" or "PARTY")
+		MultiBot.SendChatMessage(command, GetNumRaidMembers() > 0 and "RAID" or "PARTY")
 	else
-		SendChatMessage(command, "PARTY")
+		MultiBot.SendChatMessage(command, "PARTY")
 	end
 
 	return true

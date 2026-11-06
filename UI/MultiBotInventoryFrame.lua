@@ -1633,7 +1633,7 @@ local function runInventoryInstantAction(botName, command, options)
                 if MultiBot.InventoryIsProtectedSellItem and MultiBot.InventoryIsProtectedSellItem(itemButton.item) then
                     protectedFound = true
                 elseif shouldSellButtonForBulk(itemButton, cmd) then
-                    SendChatMessage("s " .. itemButton.tip, "WHISPER", nil, botName)
+                    MultiBot.SendChatMessage("s " .. itemButton.tip, "WHISPER", nil, botName)
                     if itemButton.Hide then
                         itemButton:Hide()
                     end
@@ -1643,7 +1643,7 @@ local function runInventoryInstantAction(botName, command, options)
         end
 
         if protectedFound then
-            SendChatMessage(MultiBot.L("info.questitemsellalert", "I cannot sell quest items."), "SAY")
+            MultiBot.SendChatMessage(MultiBot.L("info.questitemsellalert", "I cannot sell quest items."), "SAY")
         end
 
         if sellCount < 1 and not protectedFound then
@@ -1693,7 +1693,7 @@ local function runInventoryInstantAction(botName, command, options)
         end
     end
 
-    SendChatMessage(command, "WHISPER", nil, botName)
+    MultiBot.SendChatMessage(command, "WHISPER", nil, botName)
 
     if options.refreshDelay ~= nil and MultiBot.RefreshInventory then
         MultiBot.RefreshInventory(options.refreshDelay)
@@ -2522,7 +2522,7 @@ function MultiBot.InitializeInventoryFrame()
         local positionKey = tostring(source.bag) .. ":" .. tostring(source.slot)
         local location = self.exactSnapshot.itemsByPosition and self.exactSnapshot.itemsByPosition[positionKey] or nil
         if not location or tonumber(location.itemId or 0) ~= tonumber(source.itemId or 0) or
-            tonumber(location.count or 0) ~= tonumber(source.count or 0) then
+            tonumber(location.count or 0) ~= tonumber(source.count or 0) or location.guid ~= source.guid then
             return false
         end
 
@@ -2533,6 +2533,7 @@ function MultiBot.InitializeInventoryFrame()
             srcSlot = tonumber(source.slot or 0) or 0,
             srcItemId = tonumber(source.itemId or 0) or 0,
             srcCount = tonumber(source.count or 0) or 0,
+            srcGuid = source.guid,
             sourceButton = button,
             sourceAlpha = button.GetAlpha and button:GetAlpha() or 1.0,
         }
@@ -2583,7 +2584,7 @@ function MultiBot.InitializeInventoryFrame()
         local sourceKey = tostring(drag.srcBag) .. ":" .. tostring(drag.srcSlot)
         local currentSource = self.exactSnapshot.itemsByPosition and self.exactSnapshot.itemsByPosition[sourceKey] or nil
         if not currentSource or tonumber(currentSource.itemId or 0) ~= drag.srcItemId or
-            tonumber(currentSource.count or 0) ~= drag.srcCount then
+            tonumber(currentSource.count or 0) ~= drag.srcCount or currentSource.guid ~= drag.srcGuid then
             return false
         end
 
@@ -2591,7 +2592,8 @@ function MultiBot.InitializeInventoryFrame()
         local currentTarget = self.exactSnapshot.itemsByPosition and self.exactSnapshot.itemsByPosition[targetKey] or nil
         local dstItemId = currentTarget and (tonumber(currentTarget.itemId or 0) or 0) or 0
         local dstCount = currentTarget and (tonumber(currentTarget.count or 0) or 0) or 0
-        if dstItemId ~= (tonumber(target.itemId or 0) or 0) or dstCount ~= (tonumber(target.count or 0) or 0) then
+        if dstItemId ~= (tonumber(target.itemId or 0) or 0) or dstCount ~= (tonumber(target.count or 0) or 0) or
+            (currentTarget and currentTarget.guid or 0) ~= (target.guid or 0) then
             return false
         end
 
@@ -2601,7 +2603,7 @@ function MultiBot.InitializeInventoryFrame()
 
         local token = MultiBot.Comm.RunInventoryItemMove(
             drag.botName, drag.srcBag, drag.srcSlot, drag.srcItemId, drag.srcCount,
-            dstBag, dstSlot, dstItemId, dstCount
+            dstBag, dstSlot, dstItemId, dstCount, drag.srcGuid, currentTarget and currentTarget.guid or 0
         )
         if not token then
             return false
@@ -2622,6 +2624,7 @@ function MultiBot.InitializeInventoryFrame()
             slot = tonumber(item.slot or 0) or 0,
             itemId = tonumber(item.id or 0) or 0,
             count = tonumber(item._serverCount or item.count or 1) or 1,
+            guid = item.guid,
         }
 
         if not MultiBot.Comm or not MultiBot.Comm.IsInventoryItemMoveCapable or

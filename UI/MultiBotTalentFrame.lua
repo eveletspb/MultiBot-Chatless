@@ -1071,7 +1071,7 @@ function MultiBot.InitializeTalentFrameModule()
         end
 
         if MultiBot.allowLegacyChatFallback == true then
-            SendChatMessage("talents apply " .. build, "WHISPER", nil, botName)
+            MultiBot.SendChatMessage("talents apply " .. build, "WHISPER", nil, botName)
             return true
         end
 
@@ -1089,13 +1089,13 @@ function MultiBot.InitializeTalentFrameModule()
 
     function MultiBot.talent.copyCustomTalentsToTarget()
 	local tName = UnitName("target")
-	if(tName == nil or tName == "Unknown Entity") then return SendChatMessage(MultiBot.L("info.target"), "SAY") end
+	if(tName == nil or tName == "Unknown Entity") then return MultiBot.SendChatMessage(MultiBot.L("info.target"), "SAY") end
 
 	local _, tClass = UnitClass("target")
-	if(MultiBot.talent.class ~= MultiBot.toClass(tClass)) then return SendChatMessage("The Classes do not match.", "SAY") end
+	if(MultiBot.talent.class ~= MultiBot.toClass(tClass)) then return MultiBot.SendChatMessage("The Classes do not match.", "SAY") end
 
 	local tUnit = MultiBot.toUnit(MultiBot.talent.name)
-	if(UnitLevel(tUnit) ~= UnitLevel("target")) then return SendChatMessage("The Levels do not match.", "SAY") end
+	if(UnitLevel(tUnit) ~= UnitLevel("target")) then return MultiBot.SendChatMessage("The Levels do not match.", "SAY") end
 
 	return MultiBot.talent.requestTalentApply(tName)
     end
@@ -1383,7 +1383,7 @@ function MultiBot.InitializeTalentFrameModule()
         -- Debug manuel si besoin :
         -- DEFAULT_CHAT_FRAME:AddMessage("|cff66ccff[DBG]|r " .. MultiBot.L("talent.glyphs.debug_prefix") ..
         --     (MultiBot.talent.name or "?") .. " : " .. payload)
-        SendChatMessage(payload, "WHISPER", nil, MultiBot.talent.name)
+        MultiBot.SendChatMessage(payload, "WHISPER", nil, MultiBot.talent.name)
     end
 
 
@@ -1693,7 +1693,7 @@ function MultiBot.InitializeTalentFrameModule()
 
         MultiBot.awaitGlyphs = targetName
         if MultiBot.allowLegacyChatFallback == true then
-            SendChatMessage("glyphs", "WHISPER", nil, targetName)
+            MultiBot.SendChatMessage("glyphs", "WHISPER", nil, targetName)
         end
         return nil
     end

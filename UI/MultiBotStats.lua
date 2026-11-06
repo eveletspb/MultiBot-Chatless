@@ -370,7 +370,7 @@ function MultiBot.RequestStatsRefresh(botName)
 	end
 
 	if MultiBot.allowLegacyChatFallback == true then
-		SendChatMessage("stats", "WHISPER", nil, botName)
+		MultiBot.SendChatMessage("stats", "WHISPER", nil, botName)
 		return true
 	end
 
